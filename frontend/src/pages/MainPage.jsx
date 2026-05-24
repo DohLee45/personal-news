@@ -1,10 +1,11 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import Header        from '../components/Header'
 import CategoryTabs, { TABS } from '../components/CategoryTabs'
 import HeadlineNews  from '../components/HeadlineNews'
 import ArticleCard   from '../components/ArticleCard'
 import Sidebar       from '../components/Sidebar'
+import Pagination    from '../components/Pagination'
 import { useKeywords } from '../hooks/useKeywords'
 import { useHistory }  from '../hooks/useHistory'
 import { useFeed }     from '../hooks/useFeed'
@@ -15,6 +16,9 @@ const ALL_CATS = TABS.filter(t => t !== '전체')
 
 /* 유효 탭 집합 (URL params 검증용) */
 const VALID_TABS = new Set(TABS)
+
+/* 전체탭 초기 페이지 state (카테고리별 독립) */
+const INIT_CAT_PAGES = Object.fromEntries(ALL_CATS.map(c => [c, 1]))
 
 function groupByCategory(articles) {
   const map = Object.fromEntries(ALL_CATS.map(c => [c, []]))
@@ -45,6 +49,11 @@ export default function MainPage() {
   const [instantQuery, setInstantQuery] = useState('')  // 앱내 즉시 필터
   const [rssQuery,     setRssQuery]     = useState('')  // RSS API 검색
 
+  // 전체탭: 카테고리별 독립 페이지 state
+  const [catPages, setCatPages] = useState(INIT_CAT_PAGES)
+  // 개별탭: 단일 페이지 state
+  const [singlePage, setSinglePage] = useState(1)
+
   const { keywords }                       = useKeywords()
   const { history, addStage1 }             = useHistory()
 
@@ -53,11 +62,15 @@ export default function MainPage() {
     keywords, rssQuery, history
   )
 
+  // 탭 전환 시 개별탭 페이지 리셋
+  useEffect(() => { setSinglePage(1) }, [activeTab])
+
   /* ── 이벤트 핸들러 ── */
   const handleTabChange = useCallback((tab) => {
     setActiveTab(tab)
     setInstantQuery('')
     setRssQuery('')
+    setCatPages(INIT_CAT_PAGES)  // 전체탭 카테고리 페이지도 리셋
     // 탭 상태를 URL에 반영 (replace: true → 히스토리 오염 방지)
     setSearchParams(tab === '전체' ? {} : { tab }, { replace: true })
   }, [setSearchParams])
@@ -155,46 +168,76 @@ export default function MainPage() {
     )
   }
 
-  /* ── 전체탭 렌더 ── */
+  /* ── 전체탭 렌더 (카테고리별 독립 페이지네이션) ── */
   function renderAll() {
     if (!grouped) return null
     const hasSome = ALL_CATS.some(c => grouped[c]?.length > 0)
     if (!hasSome) return <p className={styles.empty}>뉴스가 없습니다.</p>
 
+    const PAGE_SIZE = 3  // 페이지당 일반 기사 수
+    const MAX_PAGES = 2  // 최대 2페이지
+
     return ALL_CATS
       .filter(c => grouped[c]?.length > 0)
       .map(cat => {
         const catArticles = grouped[cat]
+        const headline    = catArticles[0]
+        const rest        = catArticles.slice(1)
+        const page        = catPages[cat] || 1
+        const totalPages  = Math.min(MAX_PAGES, Math.ceil(rest.length / PAGE_SIZE))
+        const pageArts    = rest.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+
         return (
           <section key={cat} className={styles.section}>
             <h2 className={styles.sectionTitle}>{cat}</h2>
-            {/* 첫 기사: 헤드라인 크게 */}
-            <HeadlineNews article={catArticles[0]} onRead={handleRead} />
-            {/* 2~7번째 기사: 일반 카드 (최대 6건) */}
-            {catArticles.length > 1 && (
+            {/* 헤드라인: 페이지 전환 시에도 항상 고정 */}
+            <HeadlineNews article={headline} onRead={handleRead} />
+            {pageArts.length > 0 && (
               <div className={styles.grid}>
-                {catArticles.slice(1, 7).map(a => (
+                {pageArts.map(a => (
                   <ArticleCard key={a.id} article={a} onRead={handleRead} />
                 ))}
               </div>
+            )}
+            {/* 일반 기사 3건 초과 시에만 페이지네이션 표시 */}
+            {totalPages > 1 && (
+              <Pagination
+                page={page}
+                totalPages={totalPages}
+                onChange={p => setCatPages(prev => ({ ...prev, [cat]: p }))}
+              />
             )}
           </section>
         )
       })
   }
 
-  /* ── 개별 탭 렌더 (tabArticles = category 필터 결과) ── */
+  /* ── 개별 탭 렌더 (헤드라인 고정 + 22건/페이지) ── */
   function renderCategory() {
     if (tabArticles.length === 0) return <p className={styles.empty}>뉴스가 없습니다.</p>
+
+    const PAGE_SIZE  = 22
+    const headline   = tabArticles[0]
+    const rest       = tabArticles.slice(1)
+    const totalPages = Math.max(1, Math.ceil(rest.length / PAGE_SIZE))
+    const pageArts   = rest.slice((singlePage - 1) * PAGE_SIZE, singlePage * PAGE_SIZE)
+
     return (
       <>
-        <HeadlineNews article={tabArticles[0]} onRead={handleRead} />
-        {tabArticles.length > 1 && (
+        <HeadlineNews article={headline} onRead={handleRead} />
+        {pageArts.length > 0 && (
           <div className={styles.grid}>
-            {tabArticles.slice(1).map(a => (
+            {pageArts.map(a => (
               <ArticleCard key={a.id} article={a} onRead={handleRead} />
             ))}
           </div>
+        )}
+        {totalPages > 1 && (
+          <Pagination
+            page={singlePage}
+            totalPages={totalPages}
+            onChange={setSinglePage}
+          />
         )}
       </>
     )
