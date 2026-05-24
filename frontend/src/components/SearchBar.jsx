@@ -59,14 +59,13 @@ const SearchBar = memo(function SearchBar({ onInstantSearch, onSearch }) {
     saveHistory(next)
   }, [history])
 
-  // RSS 검색 실행 (히스토리 저장 포함)
+  // RSS 검색 실행 (히스토리 저장 미포함 — 엔터 시에만 별도 저장)
   const submitRSS = useCallback((q) => {
     const trimmed = q.trim()
     if (!trimmed) return
-    persistHistory(trimmed)
     onSearch(trimmed)
     setOpen(false)
-  }, [onSearch, persistHistory])
+  }, [onSearch])
 
   // RSS 검색 실행 (히스토리는 q 문자열로 전달)
   function handleChange(e) {
@@ -89,6 +88,8 @@ const SearchBar = memo(function SearchBar({ onInstantSearch, onSearch }) {
   function handleKeyDown(e) {
     if (e.key === 'Enter') {
       clearTimeout(debounceRef.current)
+      const trimmed = value.trim()
+      if (trimmed) persistHistory(trimmed)   // 엔터 시에만 검색기록 저장
       submitRSS(value)
     }
     if (e.key === 'Escape') { setOpen(false) }
