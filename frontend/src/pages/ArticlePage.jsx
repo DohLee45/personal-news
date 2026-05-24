@@ -44,35 +44,6 @@ function BiasBar({ score, tag }) {
   )
 }
 
-// ── 관련 기사 카드 (내부 이동) ─────────────────────────────────────────────
-function RelatedCard({ article, onRead }) {
-  const nav = useNavigate()
-  const handleClick = () => {
-    if (onRead) onRead(article)
-    nav(`/article/${article.id}`, { state: { article } })
-  }
-  return (
-    <div
-      className={styles.relatedCard}
-      onClick={handleClick}
-      role="button"
-      tabIndex={0}
-      onKeyDown={e => { if (e.key === 'Enter') handleClick() }}
-    >
-      <span className={styles.relatedCardTitle}>{article.title}</span>
-      <span className={styles.relatedCardMeta}>
-        {article.category && (
-          <span className={styles.relatedCardCat}>{article.category}</span>
-        )}
-        <span>{article.source}</span>
-        {article.biasTag && (
-          <span className={styles.relatedCardTag}>{article.biasTag}</span>
-        )}
-      </span>
-    </div>
-  )
-}
-
 // ── 메인 페이지 컴포넌트 ────────────────────────────────────────────────────
 export default function ArticlePage() {
   const navigate           = useNavigate()
@@ -197,6 +168,13 @@ export default function ArticlePage() {
       setAgentC(prev => ({ ...prev, loading: false }))
     }
   }, [article, agentC.triggered, related.articles, updatedBias, aiData])
+
+  // ── 추천 기사 클릭 → ArticlePage 이동 ───────────────────────────────────
+  const handleRelatedClick = useCallback((a) => {
+    addStage1(a)
+    navigate(`/article/${a.id}`, { state: { article: a } })
+    window.scrollTo(0, 0)
+  }, [addStage1, navigate])
 
   // ── article 없음 ──────────────────────────────────────────────────────────
   if (!article) {
@@ -360,9 +338,29 @@ export default function ArticlePage() {
 
           {!related.loading && related.articles.length > 0 && (
             <div className={styles.relatedList}>
-              {related.articles.map(a => (
-                <RelatedCard key={a.id ?? a.link} article={a} onRead={(a) => addStage1(a)} />
-              ))}
+              {related.articles
+                .filter(a => a.link !== article.link)
+                .map(a => (
+                  <div
+                    key={a.id ?? a.link}
+                    className={styles.relatedCard}
+                    onClick={() => handleRelatedClick(a)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={e => { if (e.key === 'Enter') handleRelatedClick(a) }}
+                  >
+                    <span className={styles.relatedCardTitle}>{a.title}</span>
+                    <span className={styles.relatedCardMeta}>
+                      {a.category && (
+                        <span className={styles.relatedCardCat}>{a.category}</span>
+                      )}
+                      <span>{a.source}</span>
+                      {a.biasTag && (
+                        <span className={styles.relatedCardTag}>{a.biasTag}</span>
+                      )}
+                    </span>
+                  </div>
+                ))}
             </div>
           )}
         </div>
