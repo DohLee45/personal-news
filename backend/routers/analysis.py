@@ -101,11 +101,11 @@ async def get_related(
         title       str   — 원본 기사 제목 (키워드 추출 원본)
         source      str   — 원본 언론사명 (성향 판단용)
         exclude_url str   — 원본 기사 URL (결과에서 제외)
-        is_debate   bool  — 논쟁형 여부 (False면 빈 배열 반환)
+        is_debate   bool  — 논쟁형 여부 (논쟁형·비논쟁형 모두 추천)
 
     Response:
         articles           list  — 추천 기사 목록 (article dict 형식)
-        non_debate_message str   — 비논쟁형 안내 문구 (해당 없으면 '')
+        non_debate_message str   — 항상 '' (하위 호환용 필드)
     """
     if not title:
         return {"articles": [], "non_debate_message": ""}

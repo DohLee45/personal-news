@@ -44,23 +44,24 @@ function BiasBar({ score, tag }) {
   )
 }
 
-// ── 관련 기사 카드 ──────────────────────────────────────────────────────────
-function RelatedCard({ article }) {
+// ── 관련 기사 카드 (내부 이동) ─────────────────────────────────────────────
+function RelatedCard({ article, onNavigate }) {
   return (
-    <a
-      href={article.link}
-      target="_blank"
-      rel="noopener noreferrer"
+    <div
       className={styles.relatedCard}
+      onClick={() => onNavigate(article)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={e => { if (e.key === 'Enter') onNavigate(article) }}
     >
       <span className={styles.relatedCardTitle}>{article.title}</span>
       <span className={styles.relatedCardMeta}>
-        <span>{article.source}</span>
-        {article.biasTag && (
-          <span className={styles.relatedCardTag}>{article.biasTag}</span>
+        {article.category && (
+          <span className={styles.relatedCardCat}>{article.category}</span>
         )}
+        <span>{article.source}</span>
       </span>
-    </a>
+    </div>
   )
 }
 
@@ -70,7 +71,7 @@ export default function ArticlePage() {
   const { id }             = useParams()
   const { state }          = useLocation()
   const article            = state?.article
-  const { updateStage2 }   = useHistory()
+  const { updateStage2, addStage1 } = useHistory()
 
   // ── 분석 상태 ─────────────────────────────────────────────────────────────
   const [analysisPhase, setAnalysisPhase] = useState('loading')
@@ -191,6 +192,12 @@ export default function ArticlePage() {
     }
   }, [article, agentC.triggered, related.articles, updatedBias, aiData])
 
+  // ── 추천 기사 내부 이동 ───────────────────────────────────────────────────
+  const handleRelatedNavigate = useCallback((relatedArticle) => {
+    addStage1(relatedArticle)
+    navigate(`/article/${relatedArticle.id}`, { state: { article: relatedArticle } })
+  }, [addStage1, navigate])
+
   // ── article 없음 ──────────────────────────────────────────────────────────
   if (!article) {
     return (
@@ -205,8 +212,9 @@ export default function ArticlePage() {
   }
 
   // 편향 표시값: 분석 결과 있으면 updated, 없으면 router state
-  const displayScore = updatedBias?.biasScore ?? article.biasScore ?? 0
-  const displayTag   = updatedBias?.biasTag   ?? article.biasTag   ?? ''
+  const displayScore    = updatedBias?.biasScore  ?? article.biasScore  ?? 0
+  const displayTag      = updatedBias?.biasTag    ?? article.biasTag    ?? ''
+  const displayIsDebate = updatedBias?.is_debate  ?? article.is_debate  ?? false
 
   // AI 분석 결과 (ai_unavailable 케이스 분리)
   const aiUnavailable = aiData?.ai_unavailable === true
@@ -333,26 +341,24 @@ export default function ArticlePage() {
           </>
         )}
 
-        {/* ── 1차 다른 논조 추천 (RSS 기반, 자동) ───────────────────────────── */}
+        {/* ── 1차 추천 (RSS 기반, 자동) ──────────────────────────────────────── */}
         <div className={styles.relatedSection}>
-          <p className={styles.relatedTitle}>🗞 다른 시각으로 보기</p>
+          <p className={styles.relatedTitle}>
+            {displayIsDebate ? '🗞 다른 논조 기사' : '🗞 다른 시각 기사'}
+          </p>
 
           {related.loading && (
             <p className={styles.loadingText}>추천 기사를 불러오는 중...</p>
           )}
 
-          {!related.loading && related.msg && (
-            <p className={styles.nonDebateMsg}>{related.msg}</p>
-          )}
-
-          {!related.loading && !related.msg && related.articles.length === 0 && (
+          {!related.loading && related.articles.length === 0 && (
             <p className={styles.nonDebateMsg}>관련 기사를 찾지 못했습니다.</p>
           )}
 
           {!related.loading && related.articles.length > 0 && (
             <div className={styles.relatedList}>
               {related.articles.map(a => (
-                <RelatedCard key={a.id ?? a.link} article={a} />
+                <RelatedCard key={a.id ?? a.link} article={a} onNavigate={handleRelatedNavigate} />
               ))}
             </div>
           )}

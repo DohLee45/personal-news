@@ -293,6 +293,16 @@
   gap: 6px;
 }
 
+.relatedCardCat {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  background: var(--color-chip-sel);
+  padding: 1px 6px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
 .relatedCardTag {
   font-size: 0.72rem;
   font-weight: 600;

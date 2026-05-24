@@ -1,5 +1,5 @@
 """
-recommendation.py — 1차 다른 논조 추천 (Agent C 전 단계, 무료)
+recommendation.py — 1차 다른 논조/시각 추천 (Agent C 전 단계, 무료)
 
 핵심 함수:
   extract_search_keywords(title) → str
@@ -10,7 +10,8 @@ recommendation.py — 1차 다른 논조 추천 (Agent C 전 단계, 무료)
 
   get_related_articles(title, source, exclude_url, is_debate) → dict
     Google News RSS 재수집 → 반대 성향 언론사 기사 필터링
-    • 비논쟁형: {'articles': [], 'non_debate_message': '사실 보도 기사로...'}
+    • 논쟁형·비논쟁형 모두 추천 (is_debate 불문)
+    • 2단계 fallback: 7d 결과 3건 미만 → 14d 재수집
     • 필터 기준:
         원본 conservative → progressive·neutral 추천
         원본 progressive  → conservative·neutral 추천
@@ -137,8 +138,8 @@ async def get_related_articles(
     기사 제목 키워드로 Google News RSS를 재수집하고
     반대 성향 언론사 기사를 필터링하여 반환한다.
 
-    비논쟁형(is_debate=False) 기사는 추천 대상이 아님:
-      → {'articles': [], 'non_debate_message': '사실 보도 기사로...'}
+    논쟁형·비논쟁형 모두 동일 로직으로 추천한다.
+    2단계 fallback: 7d 결과 3건 미만 → 14d 재수집.
 
     필터 기준 (언론사 성향 기반):
       원본 conservative → progressive · neutral 추천
@@ -159,20 +160,15 @@ async def get_related_articles(
     Returns:
         {'articles': [...], 'non_debate_message': str}
     """
-    # 비논쟁형 → 추천 불가
-    if not is_debate:
-        return {
-            "articles": [],
-            "non_debate_message": "사실 보도 기사로, 다른 논조 추천 대상이 아닙니다.",
-        }
-
     keyword = extract_search_keywords(title)
     if not keyword:
         return {"articles": [], "non_debate_message": ""}
 
-    # RSS 재수집 (최대 30건)
+    # RSS 재수집 — 2단계 fallback (7d 결과 3건 미만 → 14d 확장)
     try:
         candidates = await fetch_google_news(keyword, max_items=30, when="7d")
+        if len(candidates) < 3:
+            candidates = await fetch_google_news(keyword, max_items=30, when="14d")
     except Exception:
         return {"articles": [], "non_debate_message": ""}
 
