@@ -8,15 +8,6 @@ function stripHtml(html) {
   return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
 }
 
-const BIAS_CLASS = {
-  '중립·사실': styles.biasNeutral,
-  '균형 보도': styles.biasNeutral,
-  '성향 있음': styles.biasHas,
-  '관점 포함': styles.biasHas,
-  '편향 주의': styles.biasWarning,
-  '강한 논조': styles.biasWarning,
-}
-
 function relativeTime(iso) {
   if (!iso) return ''
   const diff  = Date.now() - new Date(iso).getTime()
@@ -31,7 +22,7 @@ function relativeTime(iso) {
 }
 
 /**
- * HeadlineNews — 최신/최상단 1건을 크게 표시
+ * HeadlineNews — 섹션 첫 번째 기사 (ArticleCard와 동일 크기, 헤드라인 뱃지 유지)
  *
  * @param {{ article: object, onRead?: (a:object)=>void }} props
  */
@@ -44,8 +35,6 @@ const HeadlineNews = memo(function HeadlineNews({ article, onRead }) {
   }, [article, onRead, navigate])
 
   if (!article) return null
-
-  const biasClass = BIAS_CLASS[article.biasTag] || styles.biasNeutral
 
   return (
     <article
@@ -62,13 +51,10 @@ const HeadlineNews = memo(function HeadlineNews({ article, onRead }) {
         {article.category && (
           <span className={styles.category}>{article.category}</span>
         )}
-        {article.is_debate === true && (
-          <span className={styles.debateBadge}>⚡ 논쟁</span>
-        )}
         <span className={styles.time}>{relativeTime(article.published)}</span>
       </div>
 
-      {/* 제목 (Serif, 크게) */}
+      {/* 제목 */}
       <h2 className={styles.title}>{article.title}</h2>
 
       {/* 요약 */}
@@ -76,14 +62,9 @@ const HeadlineNews = memo(function HeadlineNews({ article, onRead }) {
         <p className={styles.summary}>{stripHtml(article.summary)}</p>
       )}
 
-      {/* 하단 */}
+      {/* 하단: 언론사만 */}
       <div className={styles.footer}>
         <span className={styles.source}>{article.source}</span>
-        {article.biasTag && (
-          <span className={`${styles.biasTag} ${biasClass}`}>
-            {article.biasTag}
-          </span>
-        )}
       </div>
     </article>
   )

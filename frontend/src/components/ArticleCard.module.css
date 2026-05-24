@@ -32,15 +32,6 @@
   border-radius: 8px;
   white-space: nowrap;
 }
-.debateBadge {
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: #e67e22;
-  background: #fef3e2;
-  padding: 2px 7px;
-  border-radius: 8px;
-  white-space: nowrap;
-}
 .time {
   font-size: 0.7rem;
   color: var(--color-text-sub);
@@ -71,7 +62,7 @@
   overflow: hidden;
 }
 
-/* ── 하단: 언론사 + 태그 ── */
+/* ── 하단: 언론사 ── */
 .footer {
   display: flex;
   align-items: center;
@@ -86,37 +77,4 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-/* ── 편향 태그 (피드 모드) ── */
-.biasTag {
-  font-size: 0.7rem;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 8px;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-.biasNeutral  { background: #eaf7ec; color: #27ae60; }
-.biasHas      { background: #fef9e7; color: #f39c12; }
-.biasWarning  { background: #fdedec; color: #e74c3c; }
-
-/* ── 언론사 성향 칩 (검색 모드: S_media만) ── */
-.mediaBiasChip {
-  font-size: 0.68rem;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 8px;
-  white-space: nowrap;
-  flex-shrink: 0;
-  /* 색상은 인라인으로 주입 (lean별 동적) */
-  border: 1px solid currentColor;
-  background: transparent;
-}
-.searchNote {
-  font-size: 0.65rem;
-  color: #aaa;
-  display: block;
-  text-align: right;
-  margin-top: 2px;
 }
