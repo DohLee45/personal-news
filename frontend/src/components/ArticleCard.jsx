@@ -3,6 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { getMediaLean, getLeanLabel, getLeanColor } from '../utils/mediaBias'
 import styles from './ArticleCard.module.css'
 
+/* ── HTML 태그 방어 제거 ── */
+function stripHtml(html) {
+  if (!html) return ''
+  return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
+}
+
 /* ── 성향 태그 → CSS 클래스 ── */
 const BIAS_CLASS = {
   '중립·사실': styles.biasNeutral,
@@ -82,7 +88,7 @@ const ArticleCard = memo(function ArticleCard({ article, onRead, isSearchResult 
 
       {/* 요약: 피드 모드에서만 */}
       {!isSearchResult && article.summary && (
-        <p className={styles.summary}>{article.summary}</p>
+        <p className={styles.summary}>{stripHtml(article.summary)}</p>
       )}
 
       {/* 하단: 언론사 + 편향 태그 */}

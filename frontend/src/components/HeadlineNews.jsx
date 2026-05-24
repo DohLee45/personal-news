@@ -2,6 +2,12 @@ import { memo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import styles from './HeadlineNews.module.css'
 
+/* ── HTML 태그 방어 제거 ── */
+function stripHtml(html) {
+  if (!html) return ''
+  return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
+}
+
 const BIAS_CLASS = {
   '중립·사실': styles.biasNeutral,
   '균형 보도': styles.biasNeutral,
@@ -67,7 +73,7 @@ const HeadlineNews = memo(function HeadlineNews({ article, onRead }) {
 
       {/* 요약 */}
       {article.summary && (
-        <p className={styles.summary}>{article.summary}</p>
+        <p className={styles.summary}>{stripHtml(article.summary)}</p>
       )}
 
       {/* 하단 */}

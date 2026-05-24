@@ -11,7 +11,7 @@ import { useFeed }     from '../hooks/useFeed'
 import styles from './MainPage.module.css'
 
 /* ── 전체탭 카테고리 고정 순서 ── */
-const ALL_CATS = ['정치','경제','금융','시사·사회','과학기술','환경','국제','연예','스포츠']
+const ALL_CATS = ['정치','경제','시사·사회','과학기술','스포츠·연예']
 
 /* 유효 탭 집합 (URL params 검증용) */
 const VALID_TABS = new Set(TABS)

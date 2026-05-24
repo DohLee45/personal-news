@@ -1,10 +1,10 @@
 import { memo } from 'react'
 import styles from './CategoryTabs.module.css'
 
-export const TABS = ['전체','정치','경제','금융','시사·사회','과학기술','환경','국제','연예','스포츠']
+export const TABS = ['전체','정치','경제','시사·사회','과학기술','스포츠·연예']
 
 /**
- * CategoryTabs — 10개 카테고리 탭
+ * CategoryTabs — 6개 탭 (전체 + 5개 카테고리)
  *
  * @param {{ active: string, onChange: (tab:string)=>void }} props
  */

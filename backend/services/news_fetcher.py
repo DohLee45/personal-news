@@ -2,8 +2,11 @@
 
 import asyncio
 import hashlib
+import re
 from datetime import datetime, timezone
 from urllib.parse import quote
+
+_HTML_TAG = re.compile(r'<[^>]*>')
 
 import feedparser
 
@@ -47,7 +50,8 @@ def _fetch_feed(url: str, max_items: int) -> list[dict]:
         title: str = getattr(entry, "title", "").strip()
         source: str = _parse_source(entry)
         published: str = _parse_published(entry)
-        summary: str = getattr(entry, "summary", "").strip()
+        raw_summary: str = getattr(entry, "summary", "")
+        summary: str = _HTML_TAG.sub('', raw_summary).replace('&nbsp;', ' ').strip()
         category: str = classify_category(title, source)
         article_id: str = hashlib.md5(link.encode()).hexdigest()
 
