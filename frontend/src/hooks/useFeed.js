@@ -9,7 +9,7 @@ const CACHE_TTL = 5 * 60 * 1000   // 5분
  * 기본 검색어 — 사용자 키워드 없을 때 카테고리 균형 확보
  * 각 카테고리 대표 1개씩, 백엔드가 각 키워드로 병렬 RSS 수집
  */
-const DEFAULT_KW = ['정치', '경제', '사회', 'AI', '스포츠']
+const DEFAULT_KW = ['정치', '경제', '사회', 'AI', '스포츠', '연예']
 
 function cacheKey(kws, q) {
   return `${kws.join(',')}|${q}`
