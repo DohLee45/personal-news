@@ -2,22 +2,23 @@
 crawler.py — 기사 본문 크롤링 (httpx + BeautifulSoup)
 
 동작:
-  1) httpx GET (redirect 허용, timeout=10)
-  2) <script> <style> <nav> <header> <footer> <aside> 등 노이즈 제거
-  3) CONTENT_SELECTORS 순서로 본문 후보 탐색
-  4) 모두 실패 시 <body> 전체 텍스트 사용
-  5) 10자 미만 라인 제거 후 최대 5 000자 반환
+  1) Google News URL → googlenewsdecoder로 실제 언론사 URL 추출
+  2) httpx GET (redirect 허용, timeout=10)
+  3) <script> <style> <nav> <header> <footer> <aside> 등 노이즈 제거
+  4) CONTENT_SELECTORS 순서로 본문 후보 탐색
+  5) 모두 실패 시 <body> 전체 텍스트 사용
+  6) 10자 미만 라인 제거 후 최대 5 000자 반환
 
 실패 시 빈 문자열 반환 → 호출자가 RSS summary로 대체
 """
 
 from __future__ import annotations
 
-import base64
 import re
 
 import httpx
 from bs4 import BeautifulSoup
+from googlenewsdecoder import gnewsdecoder
 
 # ── 상수 ──────────────────────────────────────────────────────────────────────
 
@@ -62,38 +63,28 @@ _REQUEST_HEADERS: dict[str, str] = {
 # ── 공개 유틸 ─────────────────────────────────────────────────────────────────
 
 def decode_google_news_url(google_url: str) -> str:
-    """Google News 리다이렉트 URL에서 실제 기사 URL 추출 시도.
+    """Google News 리다이렉트 URL에서 실제 기사 URL 추출.
 
-    Google News RSS의 CBMi... URL은 protobuf 이중 인코딩 구조로,
-    base64 디코딩 후 URL 패턴이 직접 포함된 구형 포맷에만 동작한다.
-    현재(2025) 신형 포맷은 JavaScript 실행 없이 실제 URL 도달 불가.
+    googlenewsdecoder 패키지가 Google 서버에 요청하여
+    protobuf 인코딩된 CBMi... URL을 실제 언론사 URL로 변환한다.
+    신형 포맷(AU_yq... ID) 포함 모든 포맷 처리 가능.
 
-    - 구형 포맷: base64 디코딩 → URL 직접 추출 성공
-    - 신형 포맷: protobuf 내부에 AU_yq... 불투명 ID만 존재 → 원본 반환
+    디코딩 실패 또는 비 Google News URL 시 원본 반환.
 
     Args:
-        google_url: Google News RSS 기사 URL
+        google_url: Google News RSS 기사 URL (CBMi... 포맷)
 
     Returns:
         실제 기사 URL (성공) 또는 원본 google_url (실패)
     """
     try:
-        if '/articles/' not in google_url:
+        if '/articles/' not in google_url and '/rss/articles/' not in google_url:
             return google_url
 
-        article_id = google_url.split('/articles/')[-1].split('?')[0]
-        padding = 4 - len(article_id) % 4
-        if padding != 4:
-            article_id += '=' * padding
+        result = gnewsdecoder(google_url, interval=None)
 
-        decoded = base64.urlsafe_b64decode(article_id)
-
-        # 구형 포맷: 디코딩 바이트에 https:// URL이 직접 포함
-        urls = re.findall(rb'https?://[^\s\x00-\x1f"\'<>\x80-\xff]+', decoded)
-        if urls:
-            actual_url = urls[-1].decode('utf-8', errors='ignore')
-            if 'news.google.com' not in actual_url:
-                return actual_url
+        if result.get("status") and result.get("decoded_url"):
+            return result["decoded_url"]
 
         return google_url
     except Exception:
