@@ -435,8 +435,11 @@ export default function AnalysisPage() {
   // 'idle' | 'insufficient' | 'done'
 
   // ── 논쟁형 기사 (최근 30건) ────────────────────────────────────────────
+  // Stage 2(크롤링 기반) 분석이 완료된 논쟁형 기사만 UP 계산에 포함
   const debateArts = useMemo(
-    () => history.filter(a => a.is_debate === true).slice(0, 30),
+    () => history
+      .filter(a => a.is_debate === true && a.stage2Updated === true)
+      .slice(0, 30),
     [history]
   )
 

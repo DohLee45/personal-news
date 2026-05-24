@@ -13,8 +13,10 @@ from services.data_loader import load_debate_patterns, load_known_stance, load_m
 from services.debate_detector import DebateAnalysis, detect_debate
 
 # ── 가중치 ─────────────────────────────────────────────────────────────────────
-_W_REGISTERED   = (0.30, 0.35, 0.20, 0.15)
-_W_UNREGISTERED = (0.15, 0.50, 0.20, 0.15)
+# Gentzkow & Shapiro (2010): S_media 비중 축소
+# Groseclose & Milyo (2005) / Spinde et al. (2024): S_text + S_quote 비중 확대
+_W_REGISTERED   = (0.15, 0.45, 0.25, 0.15)   # 합계 1.0
+_W_UNREGISTERED = (0.10, 0.50, 0.25, 0.15)   # 합계 1.0
 
 # ── 이중부정 해소 상수 ──────────────────────────────────────────────────────────
 _NEGATION_WORDS = [
@@ -165,7 +167,7 @@ def _calc_s_quote(text: str, category: str) -> float:
     factual_count = sum(1 for phrase in pats.get("factual", []) if phrase in text)
 
     if direct_count == 0 and factual_count == 0:
-        return 0.5  # 인용 없음 → 중간값
+        return 0.3  # 인용 없음 → 판단 불가 (0.5 과대평가 방지)
 
     # 인용 다양성: 3건 이상이면 다양한 것으로 간주
     total_citations = direct_count + factual_count

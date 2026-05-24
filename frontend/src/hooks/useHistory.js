@@ -73,7 +73,7 @@ export function useHistory() {
     _set(prev =>
       prev.map(h =>
         h.id === id
-          ? { ...h, ...patch, _stage: 2 }
+          ? { ...h, ...patch, _stage: 2, stage2Updated: true }
           : h
       )
     )
