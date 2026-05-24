@@ -19,8 +19,7 @@ const VALID_TABS = new Set(TABS)
 function groupByCategory(articles) {
   const map = Object.fromEntries(ALL_CATS.map(c => [c, []]))
   for (const a of articles) {
-    const key = a.category || a._catGroup
-    if (map[key]) map[key].push(a)
+    if (map[a.category]) map[a.category].push(a)
   }
   return map
 }
@@ -49,8 +48,9 @@ export default function MainPage() {
   const { keywords }                       = useKeywords()
   const { history, addStage1 }             = useHistory()
 
+  // keywords/search 변경 시만 API 재호출 — 탭 전환은 category 필드로 클라이언트 필터링
   const { articles, isLoading, isStale, error, refresh } = useFeed(
-    activeTab, keywords, rssQuery, history
+    keywords, rssQuery, history
   )
 
   /* ── 이벤트 핸들러 ── */
@@ -80,14 +80,18 @@ export default function MainPage() {
   const isSearchMode = Boolean(instantQuery || rssQuery)
   const activeQuery  = instantQuery || rssQuery
 
-  /* ── 표시할 기사 배열 ── */
+  /* ── 탭 필터링 (API 재호출 없음 — category 필드 기준) ── */
+  const tabArticles = useMemo(() => {
+    if (activeTab === '전체' || isSearchMode) return articles
+    return articles.filter(a => a.category === activeTab)
+  }, [articles, activeTab, isSearchMode])
+
+  /* ── 검색 모드 표시 기사 ── */
   const displayArticles = useMemo(() => {
-    if (!isSearchMode) return articles
-    // 즉시 필터: 현재 로드된 피드에서 바로 검색
+    if (!isSearchMode) return tabArticles
     if (instantQuery) return articles.filter(a => matchesQuery(a, instantQuery))
-    // RSS 검색 결과 그대로
     return articles
-  }, [articles, isSearchMode, instantQuery])
+  }, [articles, tabArticles, isSearchMode, instantQuery])
 
   /* ── 전체탭 그룹핑 (메모이즈) ── */
   const grouped = useMemo(() => {
@@ -178,15 +182,15 @@ export default function MainPage() {
       })
   }
 
-  /* ── 개별 탭 렌더 ── */
+  /* ── 개별 탭 렌더 (tabArticles = category 필터 결과) ── */
   function renderCategory() {
-    if (articles.length === 0) return <p className={styles.empty}>뉴스가 없습니다.</p>
+    if (tabArticles.length === 0) return <p className={styles.empty}>뉴스가 없습니다.</p>
     return (
       <>
-        <HeadlineNews article={articles[0]} onRead={handleRead} />
-        {articles.length > 1 && (
+        <HeadlineNews article={tabArticles[0]} onRead={handleRead} />
+        {tabArticles.length > 1 && (
           <div className={styles.grid}>
-            {articles.slice(1).map(a => (
+            {tabArticles.slice(1).map(a => (
               <ArticleCard key={a.id} article={a} onRead={handleRead} />
             ))}
           </div>
