@@ -6,15 +6,11 @@ B_total = W1·S_media + W2·S_text + W3·S_quote + W4·S_struct
 미등록 언론사: W1=0.15 / W2=0.50 / W3=0.20 / W4=0.15
 """
 
-import json
 import re
 from dataclasses import dataclass
-from functools import lru_cache
-from pathlib import Path
 
+from services.data_loader import load_debate_patterns, load_known_stance, load_media_bias
 from services.debate_detector import DebateAnalysis, detect_debate
-
-DATA_DIR = Path(__file__).parent.parent / "data"
 
 # ── 가중치 ─────────────────────────────────────────────────────────────────────
 _W_REGISTERED   = (0.30, 0.35, 0.20, 0.15)
@@ -53,25 +49,6 @@ _TAGS_NORMAL = [
 ]
 
 
-# ── 데이터 로더 ────────────────────────────────────────────────────────────────
-@lru_cache(maxsize=1)
-def _media() -> dict:
-    with open(DATA_DIR / "media_bias.json", encoding="utf-8") as f:
-        return json.load(f)
-
-
-@lru_cache(maxsize=1)
-def _stance() -> dict:
-    with open(DATA_DIR / "known_stance.json", encoding="utf-8") as f:
-        return json.load(f)
-
-
-@lru_cache(maxsize=1)
-def _patterns() -> dict:
-    with open(DATA_DIR / "debate_patterns.json", encoding="utf-8") as f:
-        return json.load(f)
-
-
 # ── 결과 구조체 ────────────────────────────────────────────────────────────────
 @dataclass
 class BiasResult:
@@ -99,24 +76,10 @@ def resolve_double_negation(sentence: str, direction: str) -> str:
     return direction
 
 
-# ── 카테고리별 입장 데이터 수집 ────────────────────────────────────────────────
-def get_source_stance(source: str, category: str) -> str | None:
-    """언급된 기관/단체의 입장(pro/con/neutral)을 반환한다.
-    카테고리별 우선 조회 → default fallback."""
-    stance_all = _stance()
-    cat_keys = _STANCE_CATEGORY_MAP.get(category, ["default"])
-    for key in cat_keys:
-        if key in stance_all and source in stance_all[key]:
-            return stance_all[key][source]
-    if source in stance_all.get("default", {}):
-        return stance_all["default"][source]
-    return None
-
-
 # ── S_media ────────────────────────────────────────────────────────────────────
 def _calc_s_media(source: str) -> tuple[float, bool]:
     """(편향 점수, 등록 여부) 반환."""
-    m = _media()
+    m = load_media_bias()
     if source in m:
         return float(m[source]["score"]), True
     return 0.3, False
@@ -129,8 +92,8 @@ def _classify_sentence_direction(sentence: str, category: str) -> str:
     Method A: BIAS_KEYWORDS 강도
     Method B: known_stance 기관 언급
     """
-    pats = _patterns()
-    stance_all = _stance()
+    pats = load_debate_patterns()
+    stance_all = load_known_stance()
     cat_keys = _STANCE_CATEGORY_MAP.get(category, ["default"])
 
     # Method B: 기관 언급 집계
@@ -194,7 +157,7 @@ _DIRECT_QUOTE_RE = re.compile(r'[""「『](.*?)[""」』]', re.DOTALL)
 
 def _calc_s_quote(text: str, category: str) -> float:
     """인용 다양성·입장 균형 지수(S_quote) 산출."""
-    pats = _patterns()
+    pats = load_debate_patterns()
 
     # 직접 인용
     direct_count = len(_DIRECT_QUOTE_RE.findall(text))
@@ -209,7 +172,7 @@ def _calc_s_quote(text: str, category: str) -> float:
     diversity_score = min(total_citations / 3.0, 1.0)
 
     # 기관 입장 불균형
-    stance_all = _stance()
+    stance_all = load_known_stance()
     cat_keys = _STANCE_CATEGORY_MAP.get(category, ["default"])
     pro_orgs = con_orgs = 0
     for key in cat_keys + ["default"]:
@@ -232,7 +195,7 @@ def _calc_s_quote(text: str, category: str) -> float:
 # ── S_struct ───────────────────────────────────────────────────────────────────
 def _calc_s_struct(title: str, text: str) -> float:
     """제목 자극성·단언적 어조·수사 의문문 지수(S_struct) 산출."""
-    pats = _patterns()
+    pats = load_debate_patterns()
     emotional = pats.get("emotional", {})
     bias_pats = pats.get("bias", {})
 
@@ -278,11 +241,11 @@ def _get_bias_tag(score: float, is_debate: bool) -> str:
 # ── 관점 분류 ──────────────────────────────────────────────────────────────────
 def _get_viewpoint(source: str, s_text: float, text: str, category: str) -> str:
     """언론사 성향 + S_text 방향으로 관점을 결정한다."""
-    m = _media()
+    m = load_media_bias()
     media_bias = m.get(source, {}).get("bias", "neutral")
 
     # 기관 방향 신호
-    stance_all = _stance()
+    stance_all = load_known_stance()
     cat_keys = _STANCE_CATEGORY_MAP.get(category, ["default"])
     pro_hits = con_hits = 0
     for key in cat_keys + ["default"]:

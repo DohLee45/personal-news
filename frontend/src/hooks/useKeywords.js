@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
+import { MAX_KEYWORDS } from '../data/onboardingKeywords'
 
 const STORAGE_KEY = 'pn_keywords'
-const MAX_KEYWORDS = 20
 
 /**
  * pn_keywords localStorage 읽기/쓰기 훅

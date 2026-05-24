@@ -6,13 +6,10 @@
   ※ 키워드만 5~7점이어도 구조 증거 없으면 비논쟁형
 """
 
-import json
 import re
 from dataclasses import dataclass
-from functools import lru_cache
-from pathlib import Path
 
-DATA_DIR = Path(__file__).parent.parent / "data"
+from services.data_loader import load_debate_patterns, load_known_stance
 
 # ── A vs B 정규식 ──────────────────────────────────────────────────────────────
 _AVS_B_RE = re.compile(
@@ -20,19 +17,6 @@ _AVS_B_RE = re.compile(
 )
 # ── 인용문 감지 ────────────────────────────────────────────────────────────────
 _QUOTE_RE = re.compile(r'[""「\'](.*?)[""」\']', re.DOTALL)
-
-
-# ── 데이터 로더 ────────────────────────────────────────────────────────────────
-@lru_cache(maxsize=1)
-def _patterns() -> dict:
-    with open(DATA_DIR / "debate_patterns.json", encoding="utf-8") as f:
-        return json.load(f)
-
-
-@lru_cache(maxsize=1)
-def _known_stance() -> dict:
-    with open(DATA_DIR / "known_stance.json", encoding="utf-8") as f:
-        return json.load(f)
 
 
 # ── 결과 구조체 ────────────────────────────────────────────────────────────────
@@ -46,7 +30,7 @@ class DebateAnalysis:
 
 # ── keyword_score 계산 ─────────────────────────────────────────────────────────
 def _keyword_score(title: str, content: str) -> int:
-    p = _patterns()
+    p = load_debate_patterns()
     score = 0
 
     # ① vs_patterns 제목 매칭: +3 (1회 상한)
@@ -76,7 +60,7 @@ def _keyword_score(title: str, content: str) -> int:
 
 # ── structure_score 계산 ───────────────────────────────────────────────────────
 def _structure_score(title: str, content: str) -> int:
-    p = _patterns()
+    p = load_debate_patterns()
     score = 0
 
     # ① A vs B 정규식: +4
@@ -106,8 +90,8 @@ def _structure_score(title: str, content: str) -> int:
 # ── 논쟁형 관점: pro / con / neutral ──────────────────────────────────────────
 def _debate_viewpoint(title: str, content: str) -> str:
     """논쟁형 기사에서 기사가 지지하는 입장을 반환한다."""
-    p = _patterns()
-    ks = _known_stance()
+    p = load_debate_patterns()
+    ks = load_known_stance()
     text = title + " " + content
     pro = con = 0
 
@@ -146,7 +130,7 @@ def _debate_viewpoint(title: str, content: str) -> str:
 # ── 비논쟁형 관점: positive / negative / neutral ───────────────────────────────
 def _nondebate_viewpoint(title: str, content: str) -> str:
     """비논쟁형 기사의 논조를 반환한다."""
-    p = _patterns()
+    p = load_debate_patterns()
     text = title + " " + content
     emotional = p.get("emotional", {})
 

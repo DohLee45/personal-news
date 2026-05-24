@@ -70,7 +70,7 @@ function calcFrequencyScore(article, history) {
  * @param {string[]} userKws  사용자 관심 키워드
  * @param {object[]} history  열람 기록 배열 (pn_history)
  */
-export function calcInterestScore(article, userKws, history = []) {
+function calcInterestScore(article, userKws, history = []) {
   const kw   = calcKeywordScore(article, userKws) / 10   // normalize 0–1
   const fresh = calcFreshnessScore(article)
   const freq  = calcFrequencyScore(article, history)

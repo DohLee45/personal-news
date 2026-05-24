@@ -1,25 +1,7 @@
 import { memo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import styles from './HeadlineNews.module.css'
-
-/* ── HTML 태그 방어 제거 ── */
-function stripHtml(html) {
-  if (!html) return ''
-  return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
-}
-
-function relativeTime(iso) {
-  if (!iso) return ''
-  const diff  = Date.now() - new Date(iso).getTime()
-  const mins  = Math.floor(diff / 60_000)
-  const hours = Math.floor(diff / 3_600_000)
-  if (mins  < 1)  return '방금'
-  if (mins  < 60) return `${mins}분 전`
-  if (hours < 24) return `${hours}시간 전`
-  if (hours < 48) return '어제'
-  const d = new Date(iso)
-  return `${String(d.getMonth() + 1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`
-}
+import { stripHtml, relativeTime } from '../utils/formatUtils'
 
 /**
  * HeadlineNews — 섹션 첫 번째 기사 (ArticleCard와 동일 크기, 헤드라인 뱃지 유지)

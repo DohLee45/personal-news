@@ -60,7 +60,8 @@ _BODY_LIMIT: int = 4_000
 
 _AGENT_A_SYSTEM: str = (
     "뉴스분석관. 원문사실만 사용. AI판단금지. "
-    "찬반=원문인물발언만. 출처명시. JSON만응답."
+    "찬반=원문인물발언만. 출처명시. "
+    "사실 검증 신뢰도 0.85 이상 정보만 포함. JSON만응답."
 )
 
 # { } 중 format 변수: source, title, body, bias_score, d_opinion, d_source,

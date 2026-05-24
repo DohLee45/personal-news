@@ -25,15 +25,12 @@ recommendation.py — 1차 다른 논조/시각 추천 (Agent C 전 단계, 무�
 from __future__ import annotations
 
 import re
-from functools import lru_cache
-from pathlib import Path
-import json
 
+from services.data_loader import load_media_bias
 from services.news_fetcher import fetch_google_news
 
 # ── 상수 ──────────────────────────────────────────────────────────────────────
 
-_DATA_DIR = Path(__file__).parent.parent / "data"
 _KOREAN_WORD = re.compile(r"[가-힣]{2,}")
 
 # 뉴스 제목에서 제거할 일반명사 95개
@@ -77,15 +74,9 @@ _OPPOSITE: dict[str, list[str]] = {
 
 # ── 내부 헬퍼 ─────────────────────────────────────────────────────────────────
 
-@lru_cache(maxsize=1)
-def _media() -> dict:
-    with open(_DATA_DIR / "media_bias.json", encoding="utf-8") as f:
-        return json.load(f)
-
-
 def _get_source_lean(source: str) -> str:
     """언론사명 → 성향 코드 (conservative / progressive / neutral)."""
-    m = _media()
+    m = load_media_bias()
     if source in m:
         return m[source].get("bias", "neutral")
     # 부분 매칭 (예: "조선일보" ⊂ "조선일보 IT")

@@ -1,17 +1,8 @@
 """카테고리 분류기 — data/category_keywords.json 기반 키워드 매칭"""
 
-import json
-from functools import lru_cache
-from pathlib import Path
+from services.data_loader import load_category_keywords
 
-DATA_DIR = Path(__file__).parent.parent / "data"
 DEFAULT_CATEGORY = "시사·사회"
-
-
-@lru_cache(maxsize=1)
-def _load_keywords() -> dict[str, list[str]]:
-    with open(DATA_DIR / "category_keywords.json", encoding="utf-8") as f:
-        return json.load(f)
 
 
 def classify_category(title: str, source: str = "") -> str:
@@ -24,7 +15,7 @@ def classify_category(title: str, source: str = "") -> str:
     Returns:
         카테고리 문자열. 매칭 없으면 '시사·사회' 반환.
     """
-    keywords = _load_keywords()
+    keywords = load_category_keywords()
     text = title + " " + source
 
     scores: dict[str, int] = {}

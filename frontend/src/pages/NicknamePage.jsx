@@ -1,9 +1,7 @@
 import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import styles from './NicknamePage.module.css'
-
-/** 닉네임 유효성: 2~10자, 한글·영문·숫자만 */
-const NICKNAME_RE = /^[가-힣a-zA-Z0-9]{2,10}$/
+import { NICKNAME_RE } from '../utils/constants'
 
 export default function NicknamePage() {
   const navigate = useNavigate()

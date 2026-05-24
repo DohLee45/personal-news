@@ -35,21 +35,11 @@ const BIAS_MAP = {
   '민중의소리': 'progressive',
 }
 
-const LEAN_LABELS = {
-  conservative:    '보수 성향',
-  moderate_right:  '중도 보수',
-  neutral:         '중립',
-  moderate_left:   '중도 진보',
-  progressive:     '진보 성향',
-}
-
-/** CSS 변수 or hex 컬러 (ArticleCard inline style에서 직접 사용) */
-const LEAN_COLORS = {
-  conservative:   '#e74c3c',
-  moderate_right: '#e67e22',
-  neutral:        '#27ae60',
-  moderate_left:  '#3498db',
-  progressive:    '#2980b9',
+/** 관점 그룹 색상 (AnalysisPage 공용) */
+export const LEAN_GROUP_COLORS = {
+  cons: '#e74c3c',
+  neut: '#27ae60',
+  prog: '#3498db',
 }
 
 /**
@@ -63,14 +53,4 @@ export function getMediaLean(source) {
     if (source.includes(media)) return lean
   }
   return null
-}
-
-/** 편향 코드 → 한국어 레이블 */
-export function getLeanLabel(lean) {
-  return lean ? LEAN_LABELS[lean] ?? null : null
-}
-
-/** 편향 코드 → hex 컬러 (null → '#aaa') */
-export function getLeanColor(lean) {
-  return lean ? (LEAN_COLORS[lean] ?? '#aaa') : '#aaa'
 }

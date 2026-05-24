@@ -20,23 +20,8 @@ import { useNavigate }                              from 'react-router-dom'
 import { KEYWORD_CATEGORIES, MAX_KEYWORDS }         from '../data/onboardingKeywords'
 import { useKeywords }                              from '../hooks/useKeywords'
 import styles                                       from './SettingsPage.module.css'
-
-// ── 상수 ────────────────────────────────────────────────────────────────────
-const NICKNAME_RE    = /^[가-힣a-zA-Z0-9]{2,10}$/
-const SEARCH_KEY     = 'pn_search_history'
-
-// ── 검색기록 유틸 ─────────────────────────────────────────────────────────
-/** 저장 형식: {q, at}[] — 구버전 string 아이템 자동 변환 */
-function loadSearchHistory() {
-  try {
-    return (JSON.parse(localStorage.getItem(SEARCH_KEY) || '[]'))
-      .map(h => (typeof h === 'string' ? { q: h, at: '' } : h))
-  } catch { return [] }
-}
-
-function saveSearchHistory(items) {
-  try { localStorage.setItem(SEARCH_KEY, JSON.stringify(items)) } catch {}
-}
+import { NICKNAME_RE }                              from '../utils/constants'
+import { loadSearchHistory, saveSearchHistory, clearSearchHistory } from '../utils/searchHistory'
 
 /** 두 키워드 배열이 같은 집합인지 비교 (순서 무관) */
 function sameSet(a, b) {
@@ -142,7 +127,7 @@ export default function SettingsPage() {
 
   const handleClearSearch = useCallback(() => {
     setSearchHist([])
-    localStorage.removeItem(SEARCH_KEY)
+    clearSearchHistory()
   }, [])
 
   // ════════════════════════════════════════════════════════════════════════

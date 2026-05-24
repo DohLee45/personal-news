@@ -1,8 +1,8 @@
 # Personal NEWS
 
-AI 기반 뉴스 편향 분석 서비스. 사용자가 등록한 관심 키워드로 개인화된 뉴스를 제공하고, 열람 기록을 바탕으로 편향 패턴을 분석합니다.
+AI 기반 뉴스 편향도 분석 서비스 — 관심 키워드로 큐레이션된 뉴스를 읽고, AI가 기사의 편향 성향을 실시간으로 분석합니다.
 
-**🌐 배포 URL**: https://personal-news.onrender.com
+🔗 **배포 URL**: https://personal-news-be43.onrender.com
 
 <img src="qr.png" alt="Personal NEWS QR Code" width="160" />
 

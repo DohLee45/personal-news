@@ -14,8 +14,8 @@
 import { useCallback, useMemo, useState } from 'react'
 import Header                              from '../components/Header'
 import { useHistory }                      from '../hooks/useHistory'
-import { leanGroup, calcTopicDiversity, buildMessages, calculateUP }
-  from '../utils/upScore'
+import { calcTopicDiversity, buildMessages, calculateUP } from '../utils/upScore'
+import { LEAN_GROUP_COLORS }               from '../utils/mediaBias'
 import styles from './AnalysisPage.module.css'
 
 // ── 상수 ─────────────────────────────────────────────────────────────────
@@ -47,13 +47,6 @@ function gradeInfo(diversity) {     // diversity in [0,100]
   if (diversity >= 41) return { label: '보통', color: '#f39c12' }
   return { label: '낮음', color: '#e74c3c' }
 }
-
-const LEAN_COLORS = {
-  cons: '#e74c3c',
-  neut: '#27ae60',
-  prog: '#3498db',
-}
-const LEAN_LABELS = { cons: '보수', neut: '중립', prog: '진보' }
 
 // ══════════════════════════════════════════════════════════════════════════
 // 내부 컴포넌트
@@ -210,13 +203,13 @@ function Section1({ arts }) {
       <HBar label="중도"      pct={neut/t*100} color="#27ae60" count={neut} />
       <div className={styles.viewpointLegend}>
         <span className={styles.legendItem}>
-          <span className={styles.legendDot} style={{ background: '#3498db' }} />찬성 {Math.round(pro/t*100)}%
+          <span className={`${styles.legendDot} ${styles.legendDotProg}`} />찬성 {Math.round(pro/t*100)}%
         </span>
         <span className={styles.legendItem}>
-          <span className={styles.legendDot} style={{ background: '#e74c3c' }} />반대 {Math.round(con/t*100)}%
+          <span className={`${styles.legendDot} ${styles.legendDotCons}`} />반대 {Math.round(con/t*100)}%
         </span>
         <span className={styles.legendItem}>
-          <span className={styles.legendDot} style={{ background: '#27ae60' }} />중도 {Math.round(neut/t*100)}%
+          <span className={`${styles.legendDot} ${styles.legendDotNeut}`} />중도 {Math.round(neut/t*100)}%
         </span>
       </div>
     </div>
@@ -320,9 +313,9 @@ function Section4({ debateArts }) {
         )
       })}
       <div className={styles.viewpointLegend}>
-        <span className={styles.legendItem}><span className={styles.legendDot} style={{ background: '#27ae60' }} />균형(&lt;0.3)</span>
-        <span className={styles.legendItem}><span className={styles.legendDot} style={{ background: '#f39c12' }} />주의(0.3~)</span>
-        <span className={styles.legendItem}><span className={styles.legendDot} style={{ background: '#e74c3c' }} />위험(≥0.6)</span>
+        <span className={styles.legendItem}><span className={`${styles.legendDot} ${styles.legendDotGreen}`} />균형(&lt;0.3)</span>
+        <span className={styles.legendItem}><span className={`${styles.legendDot} ${styles.legendDotOrange}`} />주의(0.3~)</span>
+        <span className={styles.legendItem}><span className={`${styles.legendDot} ${styles.legendDotCons}`} />위험(≥0.6)</span>
       </div>
     </div>
   )
@@ -363,9 +356,9 @@ function Section5({ allArts }) {
         )
       })}
       <div className={styles.leanLegend}>
-        <span className={styles.leanLegendItem}><span className={styles.leanDot} style={{ background: '#3498db' }} />찬성</span>
-        <span className={styles.leanLegendItem}><span className={styles.leanDot} style={{ background: '#27ae60' }} />중립</span>
-        <span className={styles.leanLegendItem}><span className={styles.leanDot} style={{ background: '#e74c3c' }} />반대</span>
+        <span className={styles.leanLegendItem}><span className={`${styles.leanDot} ${styles.legendDotProg}`} />찬성</span>
+        <span className={styles.leanLegendItem}><span className={`${styles.leanDot} ${styles.legendDotNeut}`} />중립</span>
+        <span className={styles.leanLegendItem}><span className={`${styles.leanDot} ${styles.legendDotCons}`} />반대</span>
       </div>
     </div>
   )

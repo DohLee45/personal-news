@@ -1,22 +1,6 @@
 import { memo, useState, useRef, useCallback, useEffect } from 'react'
 import styles from './SearchBar.module.css'
-
-const HISTORY_KEY = 'pn_search_history'
-const MAX_HISTORY = 10
-
-/**
- * 저장 형식: { q: string, at: ISO string }[]
- * 하위 호환: 구버전 string[] 항목은 { q, at: '' } 로 변환
- */
-function loadHistory() {
-  try {
-    return (JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'))
-      .map(h => (typeof h === 'string' ? { q: h, at: '' } : h))
-  } catch { return [] }
-}
-function saveHistory(items) {
-  try { localStorage.setItem(HISTORY_KEY, JSON.stringify(items.slice(0, MAX_HISTORY))) } catch {}
-}
+import { loadSearchHistory, addSearch } from '../utils/searchHistory'
 
 /**
  * SearchBar — 헤더에 항시 배치
@@ -39,7 +23,7 @@ function saveHistory(items) {
 const SearchBar = memo(function SearchBar({ onInstantSearch, onSearch }) {
   const [value,   setValue]   = useState('')
   const [open,    setOpen]    = useState(false)
-  const [history, setHistory] = useState(loadHistory)
+  const [history, setHistory] = useState(loadSearchHistory)
   const debounceRef = useRef(null)
   const wrapRef     = useRef(null)
 
@@ -53,11 +37,9 @@ const SearchBar = memo(function SearchBar({ onInstantSearch, onSearch }) {
   }, [])
 
   const persistHistory = useCallback((q) => {
-    const item = { q, at: new Date().toISOString() }
-    const next = [item, ...history.filter(h => h.q !== q)].slice(0, MAX_HISTORY)
-    setHistory(next)
-    saveHistory(next)
-  }, [history])
+    addSearch(q)
+    setHistory(loadSearchHistory())
+  }, [])
 
   // RSS 검색 실행 (히스토리 저장 미포함 — 엔터 시에만 별도 저장)
   const submitRSS = useCallback((q) => {

@@ -72,18 +72,3 @@ def set_recommend(url: str, data: list) -> None:
     """추천 기사 목록 저장 (TTL=6h)."""
     _set(_recommend_key(url), data)
 
-
-# ── 유지보수 ──────────────────────────────────────────────────────────────────
-
-def clear_expired() -> int:
-    """만료된 항목을 일괄 삭제하고 삭제 건수를 반환."""
-    now = time.time()
-    expired_keys = [k for k, (_, exp) in _store.items() if now >= exp]
-    for k in expired_keys:
-        del _store[k]
-    return len(expired_keys)
-
-
-def cache_size() -> int:
-    """현재 저장된 전체 항목 수 (만료 포함)."""
-    return len(_store)

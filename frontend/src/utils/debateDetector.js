@@ -32,7 +32,7 @@ const POLICY_KWS = ['개혁', '규제', '법안', '제도', '정책', '조례', 
  * @param {string} title
  * @returns {number}
  */
-export function titleKeywordScore(title) {
+function titleKeywordScore(title) {
   if (!title) return 0
   const t = title.toLowerCase()
   let score = 0
