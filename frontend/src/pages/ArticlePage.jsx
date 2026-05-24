@@ -257,9 +257,13 @@ export default function ArticlePage() {
 
         {/* ── AI 분석 (로딩 / 완료 / 에러) ─────────────────────────────────── */}
         {analysisPhase === 'loading' && (
-          <div className={styles.loadingBox}>
-            <div className={styles.spinner} />
-            <p className={styles.loadingText}>기사를 분석하고 있습니다...</p>
+          <div className={styles.skeletonSection}>
+            <div className={styles.skeleton} />
+            <div className={`${styles.skeleton} ${styles.skeletonShort}`} />
+            <div className={styles.skeleton} />
+            <div className={`${styles.skeleton} ${styles.skeletonMed}`} />
+            <div className={styles.skeleton} />
+            <p className={styles.skeletonHint}>기사를 분석하고 있습니다...</p>
           </div>
         )}
 

@@ -4,6 +4,25 @@ import styles from './WeatherWidget.module.css'
 
 const SEOUL = { lat: 37.5665, lon: 126.9780, name: '서울' }
 
+const _CACHE_KEY = 'pn_weather'
+const _CACHE_TTL = 30 * 60 * 1000   // 30분
+
+function _loadCache() {
+  try {
+    const raw = localStorage.getItem(_CACHE_KEY)
+    if (!raw) return null
+    const cached = JSON.parse(raw)
+    if (Date.now() - cached.timestamp < _CACHE_TTL) return cached.data
+    return null
+  } catch { return null }
+}
+
+function _saveCache(data) {
+  try {
+    localStorage.setItem(_CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }))
+  } catch {}
+}
+
 /**
  * WeatherWidget — Open-Meteo API 현재 날씨
  * weather_code 기준, Geolocation 실패 시 서울 기본값
@@ -17,6 +36,15 @@ const WeatherWidget = memo(function WeatherWidget() {
 
   useEffect(() => {
     let cancelled = false
+
+    // localStorage 캐시 확인 (30분 TTL)
+    const cached = _loadCache()
+    if (cached) {
+      setWeather(cached.weather)
+      setCityName(cached.cityName)
+      setLoading(false)
+      return
+    }
 
     async function fetchWeather(lat, lon) {
       const params = new URLSearchParams({
@@ -36,16 +64,18 @@ const WeatherWidget = memo(function WeatherWidget() {
         .then(data => {
           if (cancelled) return
           const c = data.current
-          setWeather({
+          const w = {
             temp:     c.temperature_2m,
             humidity: c.relative_humidity_2m,
             wind:     c.wind_speed_10m,
             code:     c.weather_code,
-          })
+          }
+          setWeather(w)
           setCityName(name)
           setLoading(false)
+          _saveCache({ weather: w, cityName: name })
         })
-        .catch(e => {
+        .catch(() => {
           if (cancelled) return
           setError('날씨 정보를 불러오지 못했습니다.')
           setLoading(false)

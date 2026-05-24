@@ -1,10 +1,14 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import NicknamePage  from './pages/NicknamePage'
+import NicknamePage   from './pages/NicknamePage'
 import OnboardingPage from './pages/OnboardingPage'
-import MainPage      from './pages/MainPage'
-import ArticlePage   from './pages/ArticlePage'
-import AnalysisPage  from './pages/AnalysisPage'
-import SettingsPage  from './pages/SettingsPage'
+import MainPage       from './pages/MainPage'
+import styles from './App.module.css'
+
+// 무거운 페이지 — code-split chunk로 분리
+const ArticlePage  = lazy(() => import('./pages/ArticlePage'))
+const AnalysisPage = lazy(() => import('./pages/AnalysisPage'))
+const SettingsPage = lazy(() => import('./pages/SettingsPage'))
 
 /** localStorage 값 확인 헬퍼 */
 function hasNickname()  { return Boolean(localStorage.getItem('pn_nickname')) }
@@ -25,6 +29,7 @@ function RequireSetup({ children }) {
 export default function App() {
   return (
     <BrowserRouter>
+      <Suspense fallback={<div className={styles.fallback}>로딩 중...</div>}>
       <Routes>
         {/* 설정 라우트 */}
         <Route path="/nickname"   element={<NicknamePage />} />
@@ -47,6 +52,7 @@ export default function App() {
         {/* 미매칭 → 루트 */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </Suspense>
     </BrowserRouter>
   )
 }

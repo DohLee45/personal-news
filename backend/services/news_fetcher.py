@@ -3,6 +3,7 @@
 import asyncio
 import hashlib
 import re
+import time
 from datetime import datetime, timezone
 from urllib.parse import quote
 
@@ -12,6 +13,10 @@ import feedparser
 
 from services.category_classifier import classify_category
 from services.bias_analyzer import analyze as analyze_bias
+
+# ── 메인 피드 캐시 (5분 TTL) ────────────────────────────────────────────────
+_feed_cache: dict = {}   # {cache_key: {"data": [...], "expires": float}}
+_FEED_CACHE_TTL = 300    # 5분
 
 GOOGLE_NEWS_URL = (
     "https://news.google.com/rss/search"
@@ -80,6 +85,9 @@ def _fetch_feed(url: str, max_items: int) -> list[dict]:
 async def fetch_google_news(keyword: str, max_items: int = 20, when: str = "7d") -> list[dict]:
     """Google News RSS에서 키워드 기사를 비동기로 수집한다.
 
+    캐시 전략: keyword:when 조합으로 5분 인메모리 캐시.
+    캐시 히트 시 RSS·bias 계산 없이 즉시 반환한다.
+
     Args:
         keyword:   검색 키워드
         max_items: 최대 수집 건수 (기본 20)
@@ -89,6 +97,17 @@ async def fetch_google_news(keyword: str, max_items: int = 20, when: str = "7d")
     Returns:
         기사 딕셔너리 리스트
     """
+    cache_key = f"{keyword}:{when}"
+    now = time.time()
+
+    # 캐시 히트
+    if cache_key in _feed_cache and _feed_cache[cache_key]["expires"] > now:
+        return _feed_cache[cache_key]["data"]
+
+    # 캐시 미스 → RSS 수집
     encoded_kw = quote(keyword)
     url = GOOGLE_NEWS_URL.format(kw=encoded_kw, when=when)
-    return await asyncio.to_thread(_fetch_feed, url, max_items)
+    result = await asyncio.to_thread(_fetch_feed, url, max_items)
+
+    _feed_cache[cache_key] = {"data": result, "expires": now + _FEED_CACHE_TTL}
+    return result

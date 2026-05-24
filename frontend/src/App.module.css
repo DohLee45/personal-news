@@ -1,0 +1,7 @@
+/* App.module.css — Suspense fallback */
+.fallback {
+  text-align: center;
+  padding: 2rem;
+  color: var(--color-text-sub);
+  font-size: 0.9rem;
+}
