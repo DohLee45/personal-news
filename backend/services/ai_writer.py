@@ -59,8 +59,11 @@ _BODY_LIMIT: int = 4_000
 # ── Agent A 프롬프트 ──────────────────────────────────────────────────────────
 
 _AGENT_A_SYSTEM: str = (
-    "뉴스편향분석관. 원문사실만 사용. 출처 명시. "
-    "사실 검증 신뢰도 0.85 이상만 포함. 사견 배제. JSON만응답."
+    "너는 뉴스 분析관. 기사를 분析하고 다양한 관점을 정리한다. "
+    "[원칙] 1.원문 사실 인용만 2.AI 판단 금지 3.찬반=원문 인물 발언만 "
+    "4.사실 여부 판단 금지, 보도 방식·구조·균형만 5.출처 명시 "
+    "[금지] 당위표현/AI사견/정치성향지지비판/원문외사실 "
+    "JSON으로만 응답."
 )
 
 # { } 중 format 변수: source, title, body, bias_score, d_opinion, d_source,
@@ -75,10 +78,16 @@ _AGENT_A_USER_TMPL: str = """\
 
 다음 JSON 형식으로만 응답하세요:
 {{
-  "bias_explanation": "편향 판별 설명 (원문 근거 포함, 2~3문장)",
-  "background": "관련 배경 정보 (역사·정책·사회적 맥락, 2~3문장)",
-  "cross_check": "교차검증 포인트 (독자가 추가로 확인해야 할 사항)"
-}}"""
+  "bias_explanation": "편향 판별 설명 — 원문 근거 포함 (2~3문장)",
+  "pro_view": "찬성 측 입장 — 원문에서 찬성 발언을 한 인물·기관 입장 요약 (없으면 빈 문자열)",
+  "con_view": "반대 측 입장 — 원문에서 반대 발언을 한 인물·기관 입장 요약 (없으면 빈 문자열)",
+  "neutral_view": "중도·균형 시각 — 양측을 절충하거나 사실만 보도한 관점 (없으면 빈 문자열)",
+  "context_note": "맥락 정보 — 이 기사를 이해하는 데 필요한 역사·정책·사회적 배경 (2~3문장)",
+  "ai_bias_score": 0.0,
+  "cross_check": "교차검증 포인트 — 독자가 추가로 확인해야 할 사항"
+}}
+
+ai_bias_score는 0.0~1.0 사이 숫자로만 응답 (0=편향 없음, 1=매우 편향)."""
 
 # ── Agent C 프롬프트 ──────────────────────────────────────────────────────────
 
@@ -204,7 +213,8 @@ async def analyze_article(
         }
 
     Returns:
-        성공: {bias_explanation, background, cross_check}
+        성공: {bias_explanation, pro_view, con_view, neutral_view,
+               context_note, ai_bias_score, cross_check}
         한도초과: AI_UNAVAILABLE dict
     """
     # ① 캐시 히트
@@ -243,7 +253,11 @@ async def analyze_article(
 
     # ⑤ 필수 필드 보증
     result.setdefault("bias_explanation", "")
-    result.setdefault("background",       "")
+    result.setdefault("pro_view",         "")
+    result.setdefault("con_view",         "")
+    result.setdefault("neutral_view",     "")
+    result.setdefault("context_note",     "")
+    result.setdefault("ai_bias_score",    -1)
     result.setdefault("cross_check",      "")
 
     # ⑥ 캐시 저장

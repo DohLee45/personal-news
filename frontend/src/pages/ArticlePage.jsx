@@ -313,25 +313,99 @@ export default function ArticlePage() {
           )}
         </div>
 
-        {/* ── 4-4. AI 정밀 분석 결과 ────────────────────────────────────── */}
+        {/* ── 4-4. AI 정밀 분석 결과 (7개 섹션) ──────────────────────────── */}
         {deepPhase === 'done' && deepData && !deepData.ai_unavailable && (
           <>
+            {/* ⚖️ 편향 판별 설명 */}
             {deepData.bias_explanation && (
               <div className={styles.section}>
                 <p className={styles.sectionTitle}>⚖️ 편향 판별 설명</p>
                 <p className={styles.analysisText}>{deepData.bias_explanation}</p>
               </div>
             )}
-            {deepData.background && (
+
+            {/* 👥 찬반 입장 그리드 */}
+            {(deepData.pro_view || deepData.con_view) && (
               <div className={styles.section}>
-                <p className={styles.sectionTitle}>📖 배경 정보</p>
-                <p className={styles.analysisText}>{deepData.background}</p>
+                <p className={styles.sectionTitle}>👥 찬반 입장</p>
+                <div className={styles.proConGrid}>
+                  {deepData.pro_view && (
+                    <div className={styles.proBox}>
+                      <p className={styles.proConLabel}>찬성 측</p>
+                      <p className={styles.proConText}>{deepData.pro_view}</p>
+                    </div>
+                  )}
+                  {deepData.con_view && (
+                    <div className={styles.conBox}>
+                      <p className={styles.proConLabel}>반대 측</p>
+                      <p className={styles.proConText}>{deepData.con_view}</p>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
+
+            {/* ⚖️ 중도 시각 */}
+            {deepData.neutral_view && (
+              <div className={styles.section}>
+                <p className={styles.sectionTitle}>⚖️ 중도 시각</p>
+                <p className={styles.analysisText}>{deepData.neutral_view}</p>
+              </div>
+            )}
+
+            {/* 📖 맥락 정보 */}
+            {deepData.context_note && (
+              <div className={styles.section}>
+                <p className={styles.sectionTitle}>📖 맥락 정보</p>
+                <p className={styles.analysisText}>{deepData.context_note}</p>
+              </div>
+            )}
+
+            {/* 🔢 AI 편향도 점수 (ai_bias_score === -1 이면 미제공 → 숨김) */}
+            {typeof deepData.ai_bias_score === 'number' && deepData.ai_bias_score >= 0 && (
+              <div className={styles.section}>
+                <p className={styles.sectionTitle}>🔢 AI 편향도 점수</p>
+                <p className={styles.analysisText}>
+                  규칙 기반: {displayScore.toFixed(2)}&nbsp;|&nbsp;AI 판단: {deepData.ai_bias_score.toFixed(2)}
+                </p>
+              </div>
+            )}
+
+            {/* 🔍 교차검증 포인트 */}
             {deepData.cross_check && (
               <div className={styles.section}>
                 <p className={styles.sectionTitle}>🔍 교차검증 포인트</p>
                 <p className={styles.analysisText}>{deepData.cross_check}</p>
+              </div>
+            )}
+
+            {/* 💡 관련 논점 기사 */}
+            {deepData.recommendations && deepData.recommendations.length > 0 && (
+              <div className={styles.relatedSection}>
+                <p className={styles.relatedTitle}>💡 관련 논점 기사</p>
+                <div className={styles.relatedList}>
+                  {deepData.recommendations.map(a => (
+                    <div
+                      key={a.id ?? a.link}
+                      className={styles.relatedCard}
+                      onClick={() => handleRelatedClick(a)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={e => { if (e.key === 'Enter') handleRelatedClick(a) }}
+                    >
+                      <span className={styles.relatedCardTitle}>{a.title}</span>
+                      <span className={styles.relatedCardMeta}>
+                        {a.category && (
+                          <span className={styles.relatedCardCat}>{a.category}</span>
+                        )}
+                        <span>{a.source}</span>
+                        {a.biasTag && (
+                          <span className={styles.relatedCardTag}>{a.biasTag}</span>
+                        )}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </>

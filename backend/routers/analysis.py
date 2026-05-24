@@ -10,6 +10,8 @@ routers/analysis.py — 기사 분석 엔드포인트 (STEP 8)
 
 from __future__ import annotations
 
+import asyncio
+
 from fastapi import APIRouter, Query
 
 from services.ai_writer import analyze_article, recommend_viewpoints
@@ -77,7 +79,7 @@ async def post_analysis(body: dict) -> dict:
 async def post_deep_analysis(body: dict) -> dict:
     """
     AI 정밀 분석 — 버튼 클릭 시에만 호출. API 1회 소모.
-    Agent A: 편향 판별 설명 + 배경 정보 + 교차검증 포인트.
+    Agent A: 편향 판별 설명 + 찬반 입장 + 중도 시각 + 맥락 정보 + AI 편향도 + 교차검증.
 
     Request body:
         url      str   — 기사 URL (캐시 키)
@@ -87,7 +89,8 @@ async def post_deep_analysis(body: dict) -> dict:
         summary  str   — RSS 요약 (크롤링 실패 시 대체 본문)
 
     Response:
-        성공:    {bias_explanation, background, cross_check}
+        성공:    {bias_explanation, pro_view, con_view, neutral_view,
+                  context_note, ai_bias_score, cross_check, recommendations}
         한도초과: {ai_unavailable: true, message: str}
     """
     url      = str(body.get("url",      ""))
@@ -111,14 +114,32 @@ async def post_deep_analysis(body: dict) -> dict:
         "bias_type":   bias.bias_tag,
     }
 
-    # ③ 에이전트 A 호출 (편향 설명 + 배경 + 교차검증)
-    return await analyze_article(
-        url=url,
-        title=title,
-        source=source,
-        body=text_for_analysis,
-        bias_meta=bias_meta,
+    # ③ 에이전트 A + 논거 기반 추천 병렬 실행
+    result, related = await asyncio.gather(
+        analyze_article(
+            url=url,
+            title=title,
+            source=source,
+            body=text_for_analysis,
+            bias_meta=bias_meta,
+        ),
+        get_related_articles(title=title, source=source, exclude_url=url),
     )
+
+    # ④ AI 한도 초과 시 그대로 반환
+    if result.get("ai_unavailable"):
+        return result
+
+    # ⑤ ai_bias_score float 보증 (-1 = 미제공)
+    try:
+        result["ai_bias_score"] = float(result.get("ai_bias_score", -1))
+    except (TypeError, ValueError):
+        result["ai_bias_score"] = -1.0
+
+    # ⑥ 논거 기반 추천 기사 첨부
+    result["recommendations"] = related.get("articles", [])
+
+    return result
 
 
 # ── GET /api/related ──────────────────────────────────────────────────────────
