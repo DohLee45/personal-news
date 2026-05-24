@@ -15,7 +15,7 @@ from services.bias_analyzer import analyze as analyze_bias
 
 GOOGLE_NEWS_URL = (
     "https://news.google.com/rss/search"
-    "?q={kw}&hl=ko&gl=KR&ceid=KR:ko"
+    "?q={kw}+when:{when}&hl=ko&gl=KR&ceid=KR:ko"
 )
 
 
@@ -77,16 +77,18 @@ def _fetch_feed(url: str, max_items: int) -> list[dict]:
     return articles
 
 
-async def fetch_google_news(keyword: str, max_items: int = 20) -> list[dict]:
+async def fetch_google_news(keyword: str, max_items: int = 20, when: str = "7d") -> list[dict]:
     """Google News RSS에서 키워드 기사를 비동기로 수집한다.
 
     Args:
         keyword:   검색 키워드
         max_items: 최대 수집 건수 (기본 20)
+        when:      수집 기간 (기본 "7d" — Google News when: 파라미터)
+                   예) "1d" (1일), "7d" (7일), "20d" (20일)
 
     Returns:
         기사 딕셔너리 리스트
     """
     encoded_kw = quote(keyword)
-    url = GOOGLE_NEWS_URL.format(kw=encoded_kw)
+    url = GOOGLE_NEWS_URL.format(kw=encoded_kw, when=when)
     return await asyncio.to_thread(_fetch_feed, url, max_items)

@@ -13,6 +13,7 @@ router = APIRouter()
 async def get_news(
     keywords: str = Query(default="뉴스", description="쉼표 구분 키워드"),
     max: int = Query(default=20, ge=1, le=50, description="최대 반환 건수"),
+    when: str = Query(default="7d", description="수집 기간 (예: 1d, 7d, 20d)"),
 ) -> list[dict]:
     """키워드별 Google News RSS를 asyncio.gather로 동시 수집하고,
     중복(id 기준) 제거 후 최신순 정렬하여 반환한다."""
@@ -21,7 +22,7 @@ async def get_news(
         kw_list = ["뉴스"]
 
     results = await asyncio.gather(
-        *[fetch_google_news(kw, max) for kw in kw_list],
+        *[fetch_google_news(kw, max, when=when) for kw in kw_list],
         return_exceptions=False,
     )
 

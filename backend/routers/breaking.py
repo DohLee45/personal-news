@@ -18,7 +18,7 @@ async def get_breaking(
     size: int = Query(default=10, ge=1, le=20, description="페이지당 건수"),
 ) -> dict:
     """'속보' 키워드 RSS 20건 수집 후 페이지네이션하여 반환한다."""
-    articles = await fetch_google_news(_BREAKING_KEYWORD, max_items=_MAX_ARTICLES)
+    articles = await fetch_google_news(_BREAKING_KEYWORD, max_items=_MAX_ARTICLES, when="1d")
     total = len(articles)
     total_pages = max(1, math.ceil(total / size))
     start = (page - 1) * size

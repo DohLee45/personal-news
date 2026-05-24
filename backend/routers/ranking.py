@@ -20,7 +20,7 @@ _cache: dict = {"data": None, "updated_at": 0.0}
 async def _refresh_ranking() -> list[dict]:
     """주요 키워드 RSS를 병렬 수집 후 중복 제거, 최신순 정렬."""
     results = await asyncio.gather(
-        *[fetch_google_news(kw, _MAX_ARTICLES) for kw in _RANKING_KEYWORDS],
+        *[fetch_google_news(kw, _MAX_ARTICLES, when="7d") for kw in _RANKING_KEYWORDS],
         return_exceptions=False,
     )
     seen: set[str] = set()

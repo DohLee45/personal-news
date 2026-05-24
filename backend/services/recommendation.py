@@ -172,7 +172,7 @@ async def get_related_articles(
 
     # RSS 재수집 (최대 30건)
     try:
-        candidates = await fetch_google_news(keyword, max_items=30)
+        candidates = await fetch_google_news(keyword, max_items=30, when="7d")
     except Exception:
         return {"articles": [], "non_debate_message": ""}
 

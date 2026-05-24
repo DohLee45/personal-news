@@ -24,7 +24,7 @@ function cacheKey(kws, q) {
 async function fetchArticles(kws, q, signal) {
   if (q) {
     const res = await fetch(
-      `/api/news?keywords=${encodeURIComponent(q)}&max=40`,
+      `/api/news?keywords=${encodeURIComponent(q)}&max=40&when=20d`,
       { signal }
     )
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
