@@ -13,6 +13,7 @@ crawler.py — 기사 본문 크롤링 (httpx + BeautifulSoup)
 
 from __future__ import annotations
 
+import base64
 import re
 
 import httpx
@@ -59,6 +60,45 @@ _REQUEST_HEADERS: dict[str, str] = {
 
 
 # ── 공개 유틸 ─────────────────────────────────────────────────────────────────
+
+def decode_google_news_url(google_url: str) -> str:
+    """Google News 리다이렉트 URL에서 실제 기사 URL 추출 시도.
+
+    Google News RSS의 CBMi... URL은 protobuf 이중 인코딩 구조로,
+    base64 디코딩 후 URL 패턴이 직접 포함된 구형 포맷에만 동작한다.
+    현재(2025) 신형 포맷은 JavaScript 실행 없이 실제 URL 도달 불가.
+
+    - 구형 포맷: base64 디코딩 → URL 직접 추출 성공
+    - 신형 포맷: protobuf 내부에 AU_yq... 불투명 ID만 존재 → 원본 반환
+
+    Args:
+        google_url: Google News RSS 기사 URL
+
+    Returns:
+        실제 기사 URL (성공) 또는 원본 google_url (실패)
+    """
+    try:
+        if '/articles/' not in google_url:
+            return google_url
+
+        article_id = google_url.split('/articles/')[-1].split('?')[0]
+        padding = 4 - len(article_id) % 4
+        if padding != 4:
+            article_id += '=' * padding
+
+        decoded = base64.urlsafe_b64decode(article_id)
+
+        # 구형 포맷: 디코딩 바이트에 https:// URL이 직접 포함
+        urls = re.findall(rb'https?://[^\s\x00-\x1f"\'<>\x80-\xff]+', decoded)
+        if urls:
+            actual_url = urls[-1].decode('utf-8', errors='ignore')
+            if 'news.google.com' not in actual_url:
+                return actual_url
+
+        return google_url
+    except Exception:
+        return google_url
+
 
 def extract_summary(body: str, max_sentences: int = 5) -> str:
     """크롤링 본문에서 앞 max_sentences 문장을 추출하여 요약으로 반환.
@@ -120,13 +160,16 @@ async def crawl_article(url: str) -> str:
     Returns:
         정제된 본문 텍스트 (최대 5 000자) 또는 '' (실패 시)
     """
+    # Google News 리다이렉트 URL이면 실제 URL로 변환 시도
+    actual_url = decode_google_news_url(url)
+
     try:
         async with httpx.AsyncClient(
             timeout=CRAWL_TIMEOUT,
             follow_redirects=True,
             headers=_REQUEST_HEADERS,
         ) as client:
-            resp = await client.get(url)
+            resp = await client.get(actual_url)
             resp.raise_for_status()
 
         soup = BeautifulSoup(resp.text, "lxml")

@@ -57,7 +57,8 @@ async def post_analysis(body: dict) -> dict:
     bias = analyze_bias(title, source, text_for_analysis, category)
 
     # ④ 본문 요약 추출 (AI 아님, 앞 5문장)
-    summary_text = extract_summary(article_body) if article_body else ""
+    # 크롤링 성공: 본문에서 추출 / 실패: RSS summary 폴백 (Google News URL은 크롤링 불가)
+    summary_text = extract_summary(article_body) if article_body else summary
 
     return {
         "summary": summary_text,
