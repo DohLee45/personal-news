@@ -37,7 +37,7 @@ async def post_analysis(body: dict) -> dict:
         body_crawled  bool  — 크롤링 성공 여부
         ai_analysis   dict  — Agent A 결과 또는 ai_unavailable 딕셔너리
         updated_bias  dict  — 본문 재분석 후 갱신된 편향 정보
-            {biasScore, biasTag, is_debate, viewpoint}
+            {biasScore, biasTag, viewpoint}
     """
     url      = str(body.get("url",      ""))
     title    = str(body.get("title",    ""))
@@ -78,7 +78,6 @@ async def post_analysis(body: dict) -> dict:
         "updated_bias": {
             "biasScore": bias.bias_score,
             "biasTag":   bias.bias_tag,
-            "is_debate": bias.is_debate,
             "viewpoint": bias.viewpoint,
         },
     }
@@ -88,10 +87,9 @@ async def post_analysis(body: dict) -> dict:
 
 @router.get("/related")
 async def get_related(
-    title:       str  = Query(""),
-    source:      str  = Query(""),
-    exclude_url: str  = Query(""),
-    is_debate:   bool = Query(True),
+    title:       str = Query(""),
+    source:      str = Query(""),
+    exclude_url: str = Query(""),
 ) -> dict:
     """
     기사 제목 키워드로 Google News RSS를 재수집하고
@@ -101,11 +99,10 @@ async def get_related(
         title       str   — 원본 기사 제목 (키워드 추출 원본)
         source      str   — 원본 언론사명 (성향 판단용)
         exclude_url str   — 원본 기사 URL (결과에서 제외)
-        is_debate   bool  — 논쟁형 여부 (논쟁형·비논쟁형 모두 추천)
 
     Response:
         articles           list  — 추천 기사 목록 (article dict 형식)
-        non_debate_message str   — 항상 '' (하위 호환용 필드)
+        non_debate_message str   — 하위 호환용 필드
     """
     if not title:
         return {"articles": [], "non_debate_message": ""}
@@ -114,7 +111,6 @@ async def get_related(
         title=title,
         source=source,
         exclude_url=exclude_url,
-        is_debate=is_debate,
     )
 
 

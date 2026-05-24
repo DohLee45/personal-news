@@ -75,7 +75,6 @@ def _fetch_feed(url: str, max_items: int) -> list[dict]:
                 "biasTag":   bias.bias_tag,
                 "biasScore": bias.bias_score,
                 "viewpoint": bias.viewpoint,
-                "is_debate": bias.is_debate,
             }
         )
 

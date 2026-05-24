@@ -7,7 +7,7 @@ import { stripHtml, relativeTime } from '../utils/formatUtils'
  * ArticleCard
  *
  * 메인 뉴스룸: 제목·카테고리·언론사·시간만 표시 (성향 태그 없음)
- * 성향 데이터(biasTag, biasScore, viewpoint, is_debate)는 pn_history에 저장되지만 UI에는 표시 안 함
+ * 성향 데이터(biasTag, biasScore, viewpoint)는 pn_history에 저장되지만 UI에는 표시 안 함
  *
  * @param {{
  *   article: object,

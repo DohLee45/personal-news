@@ -121,7 +121,6 @@ export default function ArticlePage() {
           updateStage2(article.id, {
             biasScore: json.updated_bias.biasScore,
             biasTag:   json.updated_bias.biasTag,
-            is_debate: json.updated_bias.is_debate,
             viewpoint: json.updated_bias.viewpoint,
           })
         }
@@ -134,10 +133,9 @@ export default function ArticlePage() {
     const runRelated = async () => {
       try {
         const params = new URLSearchParams({
-          title:       article.title    || '',
-          source:      article.source   || '',
-          exclude_url: article.link     || '',
-          is_debate:   String(article.is_debate ?? true),
+          title:       article.title  || '',
+          source:      article.source || '',
+          exclude_url: article.link   || '',
         })
         const res = await fetch(`/api/related?${params}`, { signal: ctrl.signal })
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
@@ -212,9 +210,8 @@ export default function ArticlePage() {
   }
 
   // 편향 표시값: 분석 결과 있으면 updated, 없으면 router state
-  const displayScore    = updatedBias?.biasScore  ?? article.biasScore  ?? 0
-  const displayTag      = updatedBias?.biasTag    ?? article.biasTag    ?? ''
-  const displayIsDebate = updatedBias?.is_debate  ?? article.is_debate  ?? false
+  const displayScore = updatedBias?.biasScore ?? article.biasScore ?? 0
+  const displayTag   = updatedBias?.biasTag   ?? article.biasTag   ?? ''
 
   // AI 분석 결과 (ai_unavailable 케이스 분리)
   const aiUnavailable = aiData?.ai_unavailable === true
@@ -348,7 +345,7 @@ export default function ArticlePage() {
         {/* ── 1차 추천 (RSS 기반, 자동) ──────────────────────────────────────── */}
         <div className={styles.relatedSection}>
           <p className={styles.relatedTitle}>
-            {displayIsDebate ? '🗞 다른 논조 기사' : '🗞 다른 시각 기사'}
+            🗞 다른 시각 기사
           </p>
 
           {related.loading && (

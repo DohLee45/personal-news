@@ -8,9 +8,9 @@ recommendation.py — 1차 다른 논조/시각 추천 (Agent C 전 단계, 무�
     • 3글자+ 단어 우선, 없으면 2글자+ 단어
     • 최대 2개 공백 연결 반환
 
-  get_related_articles(title, source, exclude_url, is_debate) → dict
+  get_related_articles(title, source, exclude_url) → dict
     Google News RSS 재수집 → 반대 성향 언론사 기사 필터링
-    • 논쟁형·비논쟁형 모두 추천 (is_debate 불문)
+    • 모든 기사에 동일 로직으로 추천
     • 2단계 fallback: 7d 결과 3건 미만 → 14d 재수집
     • 필터 기준:
         원본 conservative → progressive·neutral 추천
@@ -123,13 +123,12 @@ async def get_related_articles(
     title: str,
     source: str,
     exclude_url: str,
-    is_debate: bool,
 ) -> dict:
     """
     기사 제목 키워드로 Google News RSS를 재수집하고
     반대 성향 언론사 기사를 필터링하여 반환한다.
 
-    논쟁형·비논쟁형 모두 동일 로직으로 추천한다.
+    모든 기사에 동일 로직으로 추천한다.
     2단계 fallback: 7d 결과 3건 미만 → 14d 재수집.
 
     필터 기준 (언론사 성향 기반):
@@ -146,7 +145,6 @@ async def get_related_articles(
         title:       원본 기사 제목 (키워드 추출 원본)
         source:      원본 기사 언론사명
         exclude_url: 원본 기사 URL (결과에서 제외)
-        is_debate:   논쟁형 여부
 
     Returns:
         {'articles': [...], 'non_debate_message': str}

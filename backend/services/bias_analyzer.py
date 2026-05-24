@@ -2,15 +2,19 @@
 
 B_total = W1·S_media + W2·S_text + W3·S_quote + W4·S_struct
 
-등록 언론사: W1=0.30 / W2=0.35 / W3=0.20 / W4=0.15
-미등록 언론사: W1=0.15 / W2=0.50 / W3=0.20 / W4=0.15
+등록 언론사:   W1=0.15 / W2=0.45 / W3=0.25 / W4=0.15
+미등록 언론사: W1=0.10 / W2=0.50 / W3=0.25 / W4=0.15
+
+태그 3종 통일:
+  균형 보도  (score < 0.30)
+  관점 포함  (0.30 ≤ score < 0.60)
+  편향 주의  (score ≥ 0.60)
 """
 
 import re
 from dataclasses import dataclass
 
 from services.data_loader import load_debate_patterns, load_known_stance, load_media_bias
-from services.debate_detector import DebateAnalysis, detect_debate
 
 # ── 가중치 ─────────────────────────────────────────────────────────────────────
 # Gentzkow & Shapiro (2010): S_media 비중 축소
@@ -38,26 +42,13 @@ _STANCE_CATEGORY_MAP: dict[str, list[str]] = {
     "스포츠·연예": [],
 }
 
-# 태그 레이블 (논쟁형 vs 비논쟁형)
-_TAGS_DEBATE = [
-    (0.30, "중립·사실",  "green"),
-    (0.60, "성향 있음",  "yellow"),
-    (1.01, "편향 주의",  "red"),
-]
-_TAGS_NORMAL = [
-    (0.30, "균형 보도",  "green"),
-    (0.60, "관점 포함",  "yellow"),
-    (1.01, "강한 논조",  "red"),
-]
-
 
 # ── 결과 구조체 ────────────────────────────────────────────────────────────────
 @dataclass
 class BiasResult:
     bias_score: float   # 0.0 ~ 1.0
-    bias_tag:   str     # 태그 레이블
+    bias_tag:   str     # 균형 보도 / 관점 포함 / 편향 주의
     viewpoint:  str     # 보수 / 진보 / 중립
-    is_debate:  bool
     components: dict    # {s_media, s_text, s_quote, s_struct}
 
 
@@ -231,13 +222,14 @@ def _calc_s_struct(title: str, text: str) -> float:
     return round(min(s_struct, 1.0), 4)
 
 
-# ── 편향 태그 ──────────────────────────────────────────────────────────────────
-def _get_bias_tag(score: float, is_debate: bool) -> str:
-    table = _TAGS_DEBATE if is_debate else _TAGS_NORMAL
-    for threshold, label, _ in table:
-        if score < threshold:
-            return label
-    return table[-1][1]
+# ── 편향 태그 (3종 통일) ─────────────────────────────────────────────────────────
+def _get_bias_tag(score: float) -> str:
+    """편향 점수 → 태그 3종 (논쟁/비논쟁 구분 없음)."""
+    if score < 0.30:
+        return "균형 보도"
+    if score < 0.60:
+        return "관점 포함"
+    return "편향 주의"
 
 
 # ── 관점 분류 ──────────────────────────────────────────────────────────────────
@@ -262,7 +254,6 @@ def _get_viewpoint(source: str, s_text: float, text: str, category: str) -> str:
     text_leans_con = con_hits > pro_hits
 
     if media_bias == "conservative":
-        # 텍스트가 정반대면 진보, 아니면 보수
         return "진보" if text_leans_pro else "보수"
     if media_bias == "progressive":
         return "보수" if text_leans_con else "진보"
@@ -286,11 +277,11 @@ def analyze(
     Args:
         title:    기사 제목
         source:   언론사명
-        summary:  RSS 요약문
+        summary:  RSS 요약문 또는 크롤링 본문
         category: 분류된 카테고리
 
     Returns:
-        BiasResult (bias_score, bias_tag, viewpoint, is_debate, components)
+        BiasResult (bias_score, bias_tag, viewpoint, components)
     """
     text = title + " " + summary
 
@@ -299,9 +290,6 @@ def analyze(
     s_quote  = _calc_s_quote(text, category)
     s_struct = _calc_s_struct(title, summary)
 
-    # DebateAnalysis: is_debate + viewpoint(pro/con/neutral or positive/negative/neutral)
-    debate: DebateAnalysis = detect_debate(title, summary)
-
     w = _W_REGISTERED if is_registered else _W_UNREGISTERED
     b_total = round(
         w[0] * s_media + w[1] * s_text + w[2] * s_quote + w[3] * s_struct,
@@ -309,19 +297,17 @@ def analyze(
     )
     b_total = min(b_total, 1.0)
 
-    bias_tag = _get_bias_tag(b_total, debate.is_debate)
+    bias_tag = _get_bias_tag(b_total)
+    viewpoint = _get_viewpoint(source, s_text, text, category)
 
     return BiasResult(
         bias_score = b_total,
         bias_tag   = bias_tag,
-        viewpoint  = debate.viewpoint,   # debate_detector에서 결정
-        is_debate  = debate.is_debate,
+        viewpoint  = viewpoint,
         components = {
             "s_media":  s_media,
             "s_text":   s_text,
             "s_quote":  s_quote,
             "s_struct": s_struct,
-            "kw_score": debate.kw_score,
-            "st_score": debate.st_score,
         },
     )

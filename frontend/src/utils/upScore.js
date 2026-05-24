@@ -136,7 +136,7 @@ export function buildMessages({ d_opinion, d_source, d_bimodal, d_intensity }) {
 /**
  * UP Score 전체 계산
  *
- * @param {Array} articles is_debate=true 논쟁형 기사 목록 (최대 30건)
+ * @param {Array} articles stage2Updated=true 분석 완료 기사 목록 (최대 30건)
  * @returns {{ up, d_opinion, d_source, d_bimodal, d_intensity,
  *             diversity, articleCount } | null}
  */

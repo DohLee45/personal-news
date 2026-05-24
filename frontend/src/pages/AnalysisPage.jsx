@@ -1,7 +1,7 @@
 /**
  * AnalysisPage — 편향 열람 분석 (STEP 10)
  *
- * 분석 대상: pn_history 中 is_debate=true 최근 30건
+ * 분석 대상: pn_history 中 stage2Updated=true 최근 30건 (Stage 2 완료 기사)
  * 저장소:   pn_analysis_history (최대 30건, 분석 시마다 추가)
  *
  * 표시 순서 (총평 → 상세):
@@ -281,7 +281,7 @@ function Section4({ debateArts }) {
   const cats = Object.entries(catArts).sort((a, b) => b[1].length - a[1].length)
   return (
     <div className={styles.card}>
-      <p className={styles.sectionTitle}>④ 카테고리별 편향 분포 (논쟁형)</p>
+      <p className={styles.sectionTitle}>④ 카테고리별 편향 분포</p>
       {cats.length === 0 && <p className={styles.noDataMsg}>데이터 없음</p>}
       {cats.map(([cat, as]) => {
         if (as.length < 5) {
@@ -434,24 +434,23 @@ export default function AnalysisPage() {
   const [analysisState,   setAnalysisState]   = useState('idle')
   // 'idle' | 'insufficient' | 'done'
 
-  // ── 논쟁형 기사 (최근 30건) ────────────────────────────────────────────
-  // Stage 2(크롤링 기반) 분석이 완료된 논쟁형 기사만 UP 계산에 포함
-  const debateArts = useMemo(
+  // ── 분석 대상 기사: Stage 2(크롤링 기반) 완료 기사 최근 30건 ────────────
+  const analyzedArts = useMemo(
     () => history
-      .filter(a => a.is_debate === true && a.stage2Updated === true)
+      .filter(a => a.stage2Updated === true)
       .slice(0, 30),
     [history]
   )
 
   // ── 분석 실행 ─────────────────────────────────────────────────────────
   const handleAnalyze = useCallback(() => {
-    if (debateArts.length < 5) {
+    if (analyzedArts.length < 5) {
       setAnalysisState('insufficient')
       setResult(null)
       return
     }
 
-    const calc = calculateUP(debateArts)
+    const calc = calculateUP(analyzedArts)
     if (!calc) { setAnalysisState('insufficient'); return }
 
     const topicDiv = calcTopicDiversity(history)
@@ -474,7 +473,7 @@ export default function AnalysisPage() {
     setAnalysisHistory(updated)
     setResult(fullResult)
     setAnalysisState('done')
-  }, [debateArts, history])
+  }, [analyzedArts, history])
 
   // ── grade ───────────────────────────────────────────────────────────────
   const grade = result ? gradeInfo(result.diversity) : null
@@ -499,12 +498,12 @@ export default function AnalysisPage() {
               <div className={styles.insufficientIcon}>📉</div>
               <p className={styles.insufficientTitle}>분석 데이터 부족</p>
               <p className={styles.insufficientDesc}>
-                논쟁형 기사(is_debate=true)가 {debateArts.length}건으로<br />
+                분석된 기사(Stage 2 완료)가 {analyzedArts.length}건으로<br />
                 UP Score 계산에 필요한 최소 5건에 미달합니다.<br />
                 뉴스를 더 읽은 뒤 다시 시도해 주세요.
               </p>
             </div>
-            <Section4 debateArts={debateArts} />
+            <Section4 debateArts={analyzedArts} />
             <Section5 allArts={history} />
           </>
         )}
@@ -516,7 +515,7 @@ export default function AnalysisPage() {
             <p className={styles.emptyTitle}>편향 분석 준비됨</p>
             <p className={styles.emptyDesc}>
               위 버튼을 눌러 나의 뉴스 열람 패턴을 분석해보세요.<br />
-              논쟁형 기사 {debateArts.length}건이 준비되어 있습니다.
+              분석된 기사 {analyzedArts.length}건이 준비되어 있습니다.
             </p>
           </div>
         )}
@@ -564,7 +563,7 @@ export default function AnalysisPage() {
                 <div className={styles.subCard}>
                   <p className={styles.subCardLabel}>분석 기사 수</p>
                   <p className={styles.subCardValue}>{result.articleCount}</p>
-                  <p className={styles.subCardUnit}>건 (논쟁형)</p>
+                  <p className={styles.subCardUnit}>건 (분석 완료)</p>
                 </div>
                 <div className={styles.subCard}>
                   <p className={styles.subCardLabel}>UP Score</p>
@@ -580,10 +579,10 @@ export default function AnalysisPage() {
             {/* ── 상세 분석 ── */}
             <p className={styles.divider}>상세 분석</p>
 
-            <Section1 arts={debateArts} />
+            <Section1 arts={analyzedArts} />
             <Section2 result={result} />
             <Section3 allArts={history} />
-            <Section4 debateArts={debateArts} />
+            <Section4 debateArts={analyzedArts} />
             <Section5 allArts={history} />
             <Section6 analysisHistory={analysisHistory} />
             <Section7 />
