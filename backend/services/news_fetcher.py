@@ -13,6 +13,38 @@ import feedparser
 
 from services.bias_analyzer import analyze as analyze_bias
 
+# ── 키워드 기사 카테고리 간이 분류 ──────────────────────────────────────────
+# fetch_google_news() (키워드 검색) 전용. 카테고리 RSS 기사에는 적용하지 않음.
+_CATEGORY_KEYWORDS_SIMPLE: dict[str, list[str]] = {
+    "정치":    ["대통령", "국회", "여당", "야당", "선거", "정부", "장관", "의원", "청와대", "국무"],
+    "경제":    ["주가", "코스피", "환율", "금리", "GDP", "수출", "기업", "매출", "투자", "증시"],
+    "사회":    ["사고", "사건", "재판", "법원", "경찰", "교육", "복지", "인구", "주택", "부동산"],
+    "과학기술": ["AI", "반도체", "배터리", "로봇", "우주", "양자", "바이오", "특허", "연구", "기술"],
+    "스포츠":  ["야구", "축구", "농구", "올림픽", "감독", "선수", "경기", "리그", "우승", "월드컵"],
+    "연예":    ["드라마", "영화", "아이돌", "방송", "예능", "음악", "배우", "가수", "콘서트", "앨범"],
+}
+
+
+def _simple_classify(title: str) -> str:
+    """기사 제목 키워드 매칭으로 카테고리를 추정한다.
+
+    카테고리 RSS 기사에는 적용하지 않음 (RSS 출처로 이미 확정됨).
+    fetch_google_news() 키워드 검색 기사 전용.
+
+    Args:
+        title: 기사 제목
+
+    Returns:
+        6개 카테고리 중 하나 또는 "사회" (기본값)
+    """
+    scores: dict[str, int] = {
+        cat: sum(1 for kw in kws if kw in title)
+        for cat, kws in _CATEGORY_KEYWORDS_SIMPLE.items()
+    }
+    best = max(scores, key=lambda c: scores[c])
+    return best if scores[best] > 0 else "사회"
+
+
 # ── 메인 피드 캐시 (5분 TTL) ────────────────────────────────────────────────
 _feed_cache: dict = {}   # {cache_key: {"data": [...], "expires": float}}
 _FEED_CACHE_TTL = 300    # 5분
@@ -160,6 +192,10 @@ async def fetch_google_news(keyword: str, max_items: int = 20, when: str = "30d"
     encoded_kw = quote(keyword)
     url = GOOGLE_NEWS_URL.format(kw=encoded_kw, when=when)
     result = await asyncio.to_thread(_fetch_feed, url, max_items)
+
+    # 키워드 검색 기사 카테고리 간이 분류 (카테고리 RSS와 달리 출처 미확정)
+    for a in result:
+        a["category"] = _simple_classify(a["title"])
 
     _feed_cache[cache_key] = {"data": result, "expires": now + _FEED_CACHE_TTL}
     return result

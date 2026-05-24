@@ -163,8 +163,22 @@ export default function ArticlePage() {
 
   // ── 추천 기사 클릭 → ArticlePage 이동 ───────────────────────────────────
   const handleRelatedClick = useCallback((a) => {
-    addStage1(a)
-    navigate(`/article/${a.id}`, { state: { article: a } })
+    if (!a?.id) return          // id 없는 기사는 이동 불가
+    // 필수 필드 정규화 (누락 시 기본값 보증)
+    const clickArticle = {
+      id:        a.id,
+      title:     a.title     || '',
+      link:      a.link      || '',
+      source:    a.source    || '',
+      category:  a.category  || '',
+      biasTag:   a.biasTag   || '균형 보도',
+      biasScore: typeof a.biasScore === 'number' ? a.biasScore : 0,
+      viewpoint: a.viewpoint || 'neutral',
+      published: a.published || '',
+      summary:   a.summary   || '',
+    }
+    addStage1(clickArticle)
+    navigate(`/article/${clickArticle.id}`, { state: { article: clickArticle } })
     window.scrollTo(0, 0)
   }, [addStage1, navigate])
 
