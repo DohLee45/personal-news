@@ -15,7 +15,6 @@ import { useCallback, useMemo, useState } from 'react'
 import Header                              from '../components/Header'
 import { useHistory }                      from '../hooks/useHistory'
 import { calcTopicDiversity, buildMessages, calculateUP } from '../utils/upScore'
-import { LEAN_GROUP_COLORS }               from '../utils/mediaBias'
 import styles from './AnalysisPage.module.css'
 
 // ── 상수 ─────────────────────────────────────────────────────────────────
@@ -66,7 +65,7 @@ function CircleProgress({ score, color, grade }) {
         strokeDasharray={C} strokeDashoffset={off}
         strokeLinecap="round"
         transform="rotate(-90 74 74)"
-        style={{ transition: 'stroke-dashoffset 0.8s ease' }}
+        className={styles.circleTransition}
       />
       <text x="74" y="70" textAnchor="middle" dominantBaseline="middle"
         fill={color} fontSize="30" fontWeight="700">
@@ -346,9 +345,9 @@ function Section5({ allArts }) {
             <span className={styles.sourceName}>{src}</span>
             <div className={styles.sourceBarWrap}>
               <div className={styles.leanStackBar}>
-                <div style={{ width: `${pro/t*100}%`,  background: '#3498db', height: '100%' }} title={`찬성 ${Math.round(pro/t*100)}%`} />
-                <div style={{ width: `${neut/t*100}%`, background: '#27ae60', height: '100%' }} title={`중립 ${Math.round(neut/t*100)}%`} />
-                <div style={{ width: `${con/t*100}%`,  background: '#e74c3c', height: '100%' }} title={`반대 ${Math.round(con/t*100)}%`} />
+                <div className={styles.leanBarFull} style={{ width: `${pro/t*100}%`,  background: '#3498db' }} title={`찬성 ${Math.round(pro/t*100)}%`} />
+                <div className={styles.leanBarFull} style={{ width: `${neut/t*100}%`, background: '#27ae60' }} title={`중립 ${Math.round(neut/t*100)}%`} />
+                <div className={styles.leanBarFull} style={{ width: `${con/t*100}%`,  background: '#e74c3c' }} title={`반대 ${Math.round(con/t*100)}%`} />
               </div>
             </div>
             <span className={styles.sourceCnt}>{as.length}건</span>

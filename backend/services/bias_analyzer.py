@@ -48,7 +48,7 @@ _STANCE_CATEGORY_MAP: dict[str, list[str]] = {
 class BiasResult:
     bias_score: float   # 0.0 ~ 1.0
     bias_tag:   str     # 균형 보도 / 관점 포함 / 편향 주의
-    viewpoint:  str     # 보수 / 진보 / 중립
+    viewpoint:  str     # pro / con / neutral
     components: dict    # {s_media, s_text, s_quote, s_struct}
 
 
@@ -254,15 +254,15 @@ def _get_viewpoint(source: str, s_text: float, text: str, category: str) -> str:
     text_leans_con = con_hits > pro_hits
 
     if media_bias == "conservative":
-        return "진보" if text_leans_pro else "보수"
+        return "pro" if text_leans_pro else "con"
     if media_bias == "progressive":
-        return "보수" if text_leans_con else "진보"
+        return "con" if text_leans_con else "pro"
     # neutral 언론사: 텍스트 방향 우선
     if text_leans_pro:
-        return "진보"
+        return "pro"
     if text_leans_con:
-        return "보수"
-    return "중립"
+        return "con"
+    return "neutral"
 
 
 # ── 공개 API ───────────────────────────────────────────────────────────────────

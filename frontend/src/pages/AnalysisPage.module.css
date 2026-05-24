@@ -1,5 +1,9 @@
 /* AnalysisPage.module.css */
 
+/* ── 인라인 스타일 대체 클래스 ──────────────────────────────────────────── */
+.circleTransition { transition: stroke-dashoffset 0.8s ease; }
+.leanBarFull      { height: 100%; }
+
 /* ── 레이아웃 ──────────────────────────────────────────────────────────── */
 .page { min-height: 100vh; background: var(--color-bg); }
 

@@ -89,7 +89,9 @@ _AGENT_A_USER_TMPL: str = """\
 # ── Agent C 프롬프트 ──────────────────────────────────────────────────────────
 
 _AGENT_C_SYSTEM: str = (
-    "관점탐색기. 같은주제다른시각 선별. 사견금지. JSON만응답."
+    "관점탐색기. 같은주제다른시각 선별. "
+    "원칙: 1)출처 명시 2)사실 검증 신뢰도 0.85 이상만 포함 3)사견 배제. "
+    "JSON만응답."
 )
 
 # format 변수: title, source, summary, bias_score, candidates_text

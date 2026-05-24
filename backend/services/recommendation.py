@@ -4,7 +4,7 @@ recommendation.py — 1차 다른 논조/시각 추천 (Agent C 전 단계, 무�
 핵심 함수:
   extract_search_keywords(title) → str
     기사 제목에서 검색 키워드 추출
-    • 한국어 단어([가-힣]{2,}) 중 GENERAL_NOUNS 제외
+    • 한국어 단어([가-힣]{2,}) 중 debate_patterns.json[general_nouns] 제외
     • 3글자+ 단어 우선, 없으면 2글자+ 단어
     • 최대 2개 공백 연결 반환
 
@@ -26,43 +26,17 @@ from __future__ import annotations
 
 import re
 
-from services.data_loader import load_media_bias
+from services.data_loader import load_debate_patterns, load_media_bias
 from services.news_fetcher import fetch_google_news
 
 # ── 상수 ──────────────────────────────────────────────────────────────────────
 
 _KOREAN_WORD = re.compile(r"[가-힣]{2,}")
 
-# 뉴스 제목에서 제거할 일반명사 95개
-GENERAL_NOUNS: frozenset[str] = frozenset({
-    # 시간 표현
-    "오늘", "내일", "어제", "올해", "내년", "작년", "지난해",
-    "이달", "지난달", "현재", "최근", "당시", "오후", "오전",
-    "이날", "당일", "이번", "향후", "이후", "이전", "다음",
-    # 수량·범위
-    "이상", "이하", "미만", "초과", "이내", "가량", "여명",
-    "일부", "전체", "대부분", "모든", "주요",
-    # 동작·상태 명사 (기사 빈출어)
-    "문제", "상황", "결과", "영향", "사실", "내용", "방안",
-    "가능성", "이유", "원인", "방법", "과정", "기준", "수준",
-    "변화", "진행", "발생", "확인", "분석", "검토", "논의",
-    "결정", "발표", "공개", "예정", "계획", "추진", "시작",
-    "완료", "종료", "중단", "재개", "강화", "완화", "확대",
-    "축소", "증가", "감소", "상승", "하락", "유지", "개선",
-    # 관계·지시
-    "관련", "해당", "이것", "그것", "저것",
-    # 장소 일반명사
-    "지역", "전국", "해외", "국내", "세계", "현장", "장소",
-    # 인물 일반명사
-    "관계자", "전문가", "담당자", "당국",
-    # 뉴스 표현
-    "보도", "발언", "주장", "입장", "의견", "제안", "요구",
-    "반응", "비판", "지적", "우려", "강조", "촉구", "호소",
-    "요청", "거부", "반발", "지지", "반대", "찬성", "논란",
-    "사건", "사태", "사안", "이슈", "쟁점", "상태", "경우",
-    "방식", "제도", "정도", "기간", "시기", "규모", "형태",
-    "등록", "신청", "대응", "조치", "수습",
-})
+
+def _general_nouns() -> set[str]:
+    """debate_patterns.json["general_nouns"]를 set으로 반환 (lru_cache 적용됨)."""
+    return set(load_debate_patterns().get("general_nouns", []))
 
 # 반대 성향 매핑
 _OPPOSITE: dict[str, list[str]] = {
@@ -94,7 +68,7 @@ def extract_search_keywords(title: str) -> str:
 
     처리 순서:
       1) [가-힣]{2,} 패턴으로 한국어 단어 추출
-      2) GENERAL_NOUNS 제외
+      2) general_nouns 제외 (debate_patterns.json)
       3) 3글자 이상 단어 우선 선택 (고유명사 가능성 높음)
       4) 3글자 이상이 없으면 2글자 단어 사용
       5) 최대 2개를 공백으로 연결하여 반환
@@ -106,7 +80,8 @@ def extract_search_keywords(title: str) -> str:
         검색 키워드 문자열 (예: "의대 정원")
     """
     words = _KOREAN_WORD.findall(title)
-    filtered = [w for w in words if w not in GENERAL_NOUNS]
+    nouns = _general_nouns()
+    filtered = [w for w in words if w not in nouns]
 
     long_words = [w for w in filtered if len(w) >= 3]
     if long_words:

@@ -10,8 +10,8 @@ import { useHistory }  from '../hooks/useHistory'
 import { useFeed }     from '../hooks/useFeed'
 import styles from './MainPage.module.css'
 
-/* ── 전체탭 카테고리 고정 순서 ── */
-const ALL_CATS = ['정치','경제','시사·사회','과학기술','스포츠·연예']
+/* ── 전체탭 카테고리 고정 순서 (TABS에서 '전체' 제외하여 파생) ── */
+const ALL_CATS = TABS.filter(t => t !== '전체')
 
 /* 유효 탭 집합 (URL params 검증용) */
 const VALID_TABS = new Set(TABS)
