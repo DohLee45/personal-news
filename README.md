@@ -80,18 +80,22 @@ OPENROUTER_API_KEY=sk-or-v1-여기에키입력
 RSS 수집 시 기사마다 4가지 요소를 측정해 편향도를 계산합니다.
 
 ```
-S_media  (0.30) — media_bias.json: 65개 언론사 사전 등록 성향 점수
-S_text   (0.35) — 문장 방향성 분석 + 이중 부정 해소 (이중 부정 → 긍정)
-S_quote  (0.20) — 인용 다양성 + 발화 주체 불균형 (pro/con 편중)
+S_media  (0.15) — media_bias.json: 65개 언론사 사전 등록 성향 점수
+S_text   (0.45) — 문장 방향성 분석 + 이중 부정 해소
+S_quote  (0.25) — 인용 다양성 + 발화 주체 불균형 (pro/con 편중)
 S_struct (0.15) — 감성적 제목 + 단정 표현 + 수사 의문문 탐지
 ```
 
-- **미등록 언론사**: `S_media` 가중치 0.15, `S_text` 0.50으로 재조정
-- **논쟁형 탐지**: `kw_score ≥ 8` (제목 단독) 또는 `st_score ≥ 1 AND (kw + st ≥ 5)` (구조 포함)
+- **미등록 언론사**: S_media 0.10, S_text 0.50, S_quote 0.25, S_struct 0.15
+  인용 없음 시 S_quote 기본값 0.3 (판단 불가 = 낮은 편향 추정)
+- **편향도 태그 (3종)**:
+  - 0~0.3: 균형 보도 (초록)
+  - 0.3~0.6: 관점 포함 (노랑)
+  - 0.6~1.0: 편향 주의 (빨강)
 
 ### UP (Unbalanced Perspective) Score
 
-사용자의 최근 30건 논쟁형 기사 열람 이력을 분석합니다.
+사용자의 Stage 2 분석 완료 기사 열람 이력을 분석합니다.
 
 ```
 UP(u) = 0.35 × D_opinion + 0.25 × D_source + 0.25 × D_bimodal + 0.15 × D_intensity
@@ -205,3 +209,5 @@ startCommand:
 - Matakos et al. (2017) — viewpoint diversity measurement
 - Kitchens et al. (2020) — echo chamber bias correction
 - Shannon (1948) — entropy-based diversity
+- Gentzkow & Shapiro (2010) — content-based media slant measurement
+- Groseclose & Milyo (2005) — citation-based media bias scoring
