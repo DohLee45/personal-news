@@ -47,11 +47,13 @@ function BiasBar({ score, tag }) {
 
 // ── 메인 페이지 컴포넌트 ────────────────────────────────────────────────────
 export default function ArticlePage() {
-  const navigate                    = useNavigate()
-  const { id }                      = useParams()
-  const { state }                   = useLocation()
-  const article                     = state?.article
-  const { updateStage2, addStage1 } = useHistory()
+  const navigate                              = useNavigate()
+  const { id }                               = useParams()
+  const { state }                            = useLocation()
+  const { updateStage2, addStage1, history } = useHistory()
+
+  // ① router state 우선 ② 새로고침 시 pn_history 폴백 (window.location.href 이동 후 state 소실)
+  const article = state?.article ?? history.find(h => h.id === id) ?? null
 
   // ── 상태 ─────────────────────────────────────────────────────────────────
   // 크롤링 + 요약 추출
@@ -161,7 +163,7 @@ export default function ArticlePage() {
     }
   }, [deepPhase, article])
 
-  // ── 추천 기사 클릭 → ArticlePage 이동 ───────────────────────────────────
+  // ── 추천 기사 클릭 → 새로고침 이동 (SPA 비공유 상태 문제 회피) ──────────
   const handleRelatedClick = useCallback((a) => {
     if (!a?.id) return          // id 없는 기사는 이동 불가
     // 필수 필드 정규화 (누락 시 기본값 보증)
@@ -177,10 +179,9 @@ export default function ArticlePage() {
       published: a.published || '',
       summary:   a.summary   || '',
     }
-    addStage1(clickArticle)
-    navigate(`/article/${clickArticle.id}`, { state: { article: clickArticle } })
-    window.scrollTo(0, 0)
-  }, [addStage1, navigate])
+    addStage1(clickArticle)                              // localStorage 저장 (새로고침 후에도 유지)
+    window.location.href = '/article/' + clickArticle.id // 풀 새로고침으로 이동
+  }, [addStage1])
 
   // ── article 없음 ──────────────────────────────────────────────────────────
   if (!article) {
