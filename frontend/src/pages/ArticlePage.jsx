@@ -86,7 +86,7 @@ export default function ArticlePage() {
             url:      article.link     || '',
             title:    article.title    || '',
             source:   article.source   || '',
-            category: article.category || '시사·사회',
+            category: article.category || '사회',
             summary:  article.summary  || '',
           }),
         })
@@ -148,7 +148,7 @@ export default function ArticlePage() {
           url:      article.link     || '',
           title:    article.title    || '',
           source:   article.source   || '',
-          category: article.category || '시사·사회',
+          category: article.category || '사회',
           summary:  article.summary  || '',
         }),
       })

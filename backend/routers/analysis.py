@@ -44,7 +44,7 @@ async def post_analysis(body: dict) -> dict:
     url      = str(body.get("url",      ""))
     title    = str(body.get("title",    ""))
     source   = str(body.get("source",   ""))
-    category = str(body.get("category", "시사·사회"))
+    category = str(body.get("category", "사회"))
     summary  = str(body.get("summary",  ""))
 
     # ① 크롤링 (실패 시 '' 반환)
@@ -92,7 +92,7 @@ async def post_deep_analysis(body: dict) -> dict:
     url      = str(body.get("url",      ""))
     title    = str(body.get("title",    ""))
     source   = str(body.get("source",   ""))
-    category = str(body.get("category", "시사·사회"))
+    category = str(body.get("category", "사회"))
     summary  = str(body.get("summary",  ""))
 
     # ① 크롤링 (재수집)

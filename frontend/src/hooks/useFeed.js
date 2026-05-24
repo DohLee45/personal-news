@@ -6,19 +6,18 @@ const _cache = new Map()   // cacheKey → { articles: [], ts: number }
 const CACHE_TTL = 5 * 60 * 1000   // 5분
 
 /**
- * 기본 검색어 — 사용자 키워드 없을 때 카테고리 균형 확보
- * 각 카테고리 대표 1개씩, 백엔드가 각 키워드로 병렬 RSS 수집
+ * 캐시 키: 검색어 기준만 사용.
+ * - 메인 피드 (search=''): '__feed__' (고정 — 키워드 변경 시 API 재호출 없음)
+ * - 검색 (search≠''): 'search|<query>'
  */
-const DEFAULT_KW = ['정치', '경제', '사회', 'AI', '스포츠', '연예']
-
-function cacheKey(kws, q) {
-  return `${kws.join(',')}|${q}`
+function cacheKey(q) {
+  return q ? `search|${q}` : '__feed__'
 }
 
 /**
  * 단일 /api/news 호출:
- *   - 검색 시: q로 max=40
- *   - 일반 피드: 사용자 키워드 상위 10개(없으면 DEFAULT_KW)로 max=50
+ *   - 검색 시: q로 max=40 키워드 검색
+ *   - 일반 피드: 카테고리 RSS max=20 (키워드 전달 불필요)
  * 탭 전환 시에는 호출하지 않음 — 프론트에서 category 필드로 필터링
  */
 async function fetchArticles(kws, q, signal) {
@@ -31,14 +30,8 @@ async function fetchArticles(kws, q, signal) {
     return res.json()
   }
 
-  const kwParam = kws.length > 0
-    ? kws.slice(0, 10).join(',')
-    : DEFAULT_KW.join(',')
-
-  const res = await fetch(
-    `/api/news?keywords=${encodeURIComponent(kwParam)}&max=50`,
-    { signal }
-  )
+  // 메인 피드: 카테고리 RSS (키워드 불필요)
+  const res = await fetch(`/api/news?max=20`, { signal })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   return res.json()
 }
@@ -47,21 +40,24 @@ async function fetchArticles(kws, q, signal) {
  * 뉴스 피드 fetch 훅 — stale-while-revalidate
  *
  * 탭 전환은 이 훅 밖(MainPage)에서 category 필드로 필터링.
- * 이 훅은 category를 받지 않으며, 키워드/검색어 변경 시에만 API를 재호출한다.
+ * 메인 피드는 카테고리 RSS로 수집되므로 keywords → API 재호출 없음.
+ * keywords 변경 시에는 캐시된 기사를 클라이언트에서 재정렬만 수행.
  *
- * @param {string[]} keywords - 사용자 관심 키워드 (피드 fetch + 관심도 정렬)
+ * @param {string[]} keywords - 사용자 관심 키워드 (관심도 정렬용)
  * @param {string}   search   - 검색어 ('' = 미검색)
  * @param {object[]} history  - pn_history (열람빈도 정렬용)
  * @returns {{ articles, isLoading, error, refresh, isStale }}
  */
 export function useFeed(keywords, search = '', history = []) {
-  const key = cacheKey(keywords, search)
+  const key = cacheKey(search)
 
   // 캐시에서 초기값 즉시 설정 (stale)
   const cached = _cache.get(key)
   const isFresh = cached && (Date.now() - cached.ts < CACHE_TTL)
 
-  const [articles,  setArticles]  = useState(cached?.articles || [])
+  const [articles,  setArticles]  = useState(
+    cached?.articles ? sortByInterest(cached.articles, keywords, history) : []
+  )
   const [isLoading, setIsLoading] = useState(!isFresh)
   const [isStale,   setIsStale]   = useState(!!cached && !isFresh)
   const [error,     setError]     = useState(null)
@@ -70,7 +66,7 @@ export function useFeed(keywords, search = '', history = []) {
   const keyRef   = useRef(key)
 
   const runFetch = useCallback(async (kws, q, hist) => {
-    const thisKey = cacheKey(kws, q)
+    const thisKey = cacheKey(q)
 
     // 이전 요청 취소
     if (abortRef.current) abortRef.current.abort()
@@ -105,6 +101,7 @@ export function useFeed(keywords, search = '', history = []) {
     }
   }, [])
 
+  // search 변경 시에만 API 재호출 (keywords 변경은 재호출 없음)
   useEffect(() => {
     keyRef.current = key
 
@@ -119,7 +116,16 @@ export function useFeed(keywords, search = '', history = []) {
     runFetch(keywords, search, history)
     return () => { if (abortRef.current) abortRef.current.abort() }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key])   // keywords/search 변경 시에만 재호출
+  }, [key])   // search 변경 시에만 재호출
+
+  // keywords 변경 시 캐시된 기사 재정렬 (API 재호출 없음)
+  useEffect(() => {
+    const entry = _cache.get(key)
+    if (entry) {
+      setArticles(sortByInterest(entry.articles, keywords, history))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(keywords)])
 
   const refresh = useCallback(() => {
     _cache.delete(key)

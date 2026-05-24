@@ -1,7 +1,7 @@
 """
 data_loader.py — JSON 데이터 파일 중앙 로더
 
-bias_analyzer, recommendation, category_classifier에서
+bias_analyzer, recommendation에서
 각자 중복 정의하던 @lru_cache JSON 로더를 단일 모듈로 통합.
 
 경로: backend/data/*.json
@@ -32,7 +32,3 @@ def load_known_stance() -> dict:
     return json.loads((_DATA / "known_stance.json").read_text(encoding="utf-8"))
 
 
-@lru_cache(maxsize=1)
-def load_category_keywords() -> dict:
-    """category_keywords.json — 5개 카테고리별 키워드 목록."""
-    return json.loads((_DATA / "category_keywords.json").read_text(encoding="utf-8"))

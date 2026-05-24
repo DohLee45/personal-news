@@ -33,13 +33,15 @@ _NEGATION_COMPOUNDS = re.compile(
     r'반정부|반기업|반민주|반헌법|반환경|탈규제|탈원전|탈탄소)'
 )
 
-# 기사 카테고리 → known_stance 카테고리 매핑 (5개 통합 카테고리 기준)
+# 기사 카테고리 → known_stance 카테고리 매핑 (6개 카테고리 기준)
 _STANCE_CATEGORY_MAP: dict[str, list[str]] = {
-    "정치":      ["국방·안보", "default"],
-    "경제":      ["금융규제", "default"],
-    "시사·사회": ["노동", "부동산", "의료", "교육", "환경", "default"],
-    "과학기술":  ["기술규제", "default"],
-    "스포츠·연예": [],
+    "정치":    ["국방·안보", "default"],
+    "경제":    ["금융규제", "default"],
+    "사회":    ["노동", "부동산", "의료", "교육", "환경", "default"],
+    "과학기술": ["기술규제", "default"],
+    "스포츠":  [],
+    "연예":    [],
+    "미분류":  ["default"],
 }
 
 
@@ -270,7 +272,7 @@ def analyze(
     title: str,
     source: str,
     summary: str,
-    category: str = "시사·사회",
+    category: str = "사회",
 ) -> BiasResult:
     """기사 제목·출처·요약을 받아 BiasResult를 반환한다.
 

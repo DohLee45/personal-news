@@ -11,17 +11,29 @@ _HTML_TAG = re.compile(r'<[^>]*>')
 
 import feedparser
 
-from services.category_classifier import classify_category
 from services.bias_analyzer import analyze as analyze_bias
 
 # ── 메인 피드 캐시 (5분 TTL) ────────────────────────────────────────────────
 _feed_cache: dict = {}   # {cache_key: {"data": [...], "expires": float}}
 _FEED_CACHE_TTL = 300    # 5분
 
+# ── 카테고리 피드 캐시 (5분 TTL) ────────────────────────────────────────────
+_cat_cache: dict = {}    # {"data": [...], "expires": float}
+
 GOOGLE_NEWS_URL = (
     "https://news.google.com/rss/search"
     "?q={kw}+when:{when}&hl=ko&gl=KR&ceid=KR:ko"
 )
+
+# ── 카테고리별 Google News 토픽 RSS ────────────────────────────────────────
+CATEGORY_RSS = {
+    "정치":   "https://news.google.com/rss/topics/CAAqIQgKIhtDQkFTRGdvSUwyMHZNRE55YXpBU0FtdHZLQUFQAQ?hl=ko&gl=KR&ceid=KR:ko",
+    "경제":   "https://news.google.com/rss/topics/CAAqIQgKIhtDQkFTRGdvSUwyMHZNRGx6TVdZU0FtdHZLQUFQAQ?hl=ko&gl=KR&ceid=KR:ko",
+    "사회":   "https://news.google.com/rss/topics/CAAqIQgKIhtDQkFTRGdvSUwyMHZNRGx1YlY4U0FtdHZLQUFQAQ?hl=ko&gl=KR&ceid=KR:ko",
+    "과학기술": "https://news.google.com/rss/topics/CAAqIQgKIhtDQkFTRGdvSUwyMHZNRGRqTVhZU0FtdHZLQUFQAQ?hl=ko&gl=KR&ceid=KR:ko",
+    "스포츠": "https://news.google.com/rss/topics/CAAqIQgKIhtDQkFTRGdvSUwyMHZNRFp1ZEdvU0FtdHZLQUFQAQ?hl=ko&gl=KR&ceid=KR:ko",
+    "연예":   "https://news.google.com/rss/topics/CAAqIQgKIhtDQkFTRGdvSUwyMHZNREpxYW5RU0FtdHZLQUFQAQ?hl=ko&gl=KR&ceid=KR:ko",
+}
 
 
 def _parse_source(entry: feedparser.util.FeedParserDict) -> str:
@@ -46,7 +58,11 @@ def _parse_published(entry: feedparser.util.FeedParserDict) -> str:
 
 
 def _fetch_feed(url: str, max_items: int) -> list[dict]:
-    """feedparser로 RSS를 파싱하여 기사 목록을 반환한다. (동기 함수)"""
+    """feedparser로 RSS를 파싱하여 기사 목록을 반환한다. (동기 함수)
+
+    category는 호출자(fetch_category_news)가 확정한다.
+    키워드 검색(fetch_google_news) 경우에는 "미분류"로 설정.
+    """
     feed = feedparser.parse(url)
     articles: list[dict] = []
 
@@ -57,8 +73,10 @@ def _fetch_feed(url: str, max_items: int) -> list[dict]:
         published: str = _parse_published(entry)
         raw_summary: str = getattr(entry, "summary", "")
         summary: str = _HTML_TAG.sub('', raw_summary).replace('&nbsp;', ' ').strip()
-        category: str = classify_category(title, source)
         article_id: str = hashlib.md5(link.encode()).hexdigest()
+
+        # 카테고리는 호출자가 설정 (기본값 "미분류")
+        category: str = "미분류"
 
         # STEP 2: bias_analyzer 연동
         bias = analyze_bias(title, source, summary, category)
@@ -81,20 +99,55 @@ def _fetch_feed(url: str, max_items: int) -> list[dict]:
     return articles
 
 
+async def fetch_category_news(max_items: int = 20) -> list[dict]:
+    """6개 카테고리 RSS를 병렬 수집하여 카테고리 자동 확정.
+
+    각 카테고리 URL에서 최대 max_items건씩 수집하고,
+    카테고리 필드를 RSS 출처 기준으로 확정한 뒤 중복(title) 제거하여 반환한다.
+
+    캐시 전략: 5분 인메모리 캐시.
+    """
+    now = time.time()
+    if _cat_cache.get("expires", 0) > now:
+        return _cat_cache["data"]
+
+    async def _fetch_one(category: str, url: str) -> list[dict]:
+        articles = await asyncio.to_thread(_fetch_feed, url, max_items)
+        for a in articles:
+            a["category"] = category  # RSS 출처로 카테고리 확정
+        return articles
+
+    tasks = [_fetch_one(cat, url) for cat, url in CATEGORY_RSS.items()]
+    results = await asyncio.gather(*tasks)
+
+    all_articles: list[dict] = []
+    seen_titles: set[str] = set()
+    for articles in results:
+        for a in articles:
+            if a["title"] not in seen_titles:
+                seen_titles.add(a["title"])
+                all_articles.append(a)
+
+    _cat_cache["data"] = all_articles
+    _cat_cache["expires"] = now + _FEED_CACHE_TTL
+    return all_articles
+
+
 async def fetch_google_news(keyword: str, max_items: int = 20, when: str = "30d") -> list[dict]:
     """Google News RSS에서 키워드 기사를 비동기로 수집한다.
 
+    키워드 검색 및 추천(recommendation.py)에서 사용.
+    카테고리는 "미분류"로 설정된다.
+
     캐시 전략: keyword:when 조합으로 5분 인메모리 캐시.
-    캐시 히트 시 RSS·bias 계산 없이 즉시 반환한다.
 
     Args:
         keyword:   검색 키워드
         max_items: 최대 수집 건수 (기본 20)
-        when:      수집 기간 (기본 "7d" — Google News when: 파라미터)
-                   예) "1d" (1일), "7d" (7일), "20d" (20일)
+        when:      수집 기간 (기본 "30d")
 
     Returns:
-        기사 딕셔너리 리스트
+        기사 딕셔너리 리스트 (category="미분류")
     """
     cache_key = f"{keyword}:{when}"
     now = time.time()
