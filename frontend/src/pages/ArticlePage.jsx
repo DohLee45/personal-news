@@ -45,14 +45,19 @@ function BiasBar({ score, tag }) {
 }
 
 // ── 관련 기사 카드 (내부 이동) ─────────────────────────────────────────────
-function RelatedCard({ article, onNavigate }) {
+function RelatedCard({ article, onRead }) {
+  const nav = useNavigate()
+  const handleClick = () => {
+    if (onRead) onRead(article)
+    nav(`/article/${article.id}`, { state: { article } })
+  }
   return (
     <div
       className={styles.relatedCard}
-      onClick={() => onNavigate(article)}
+      onClick={handleClick}
       role="button"
       tabIndex={0}
-      onKeyDown={e => { if (e.key === 'Enter') onNavigate(article) }}
+      onKeyDown={e => { if (e.key === 'Enter') handleClick() }}
     >
       <span className={styles.relatedCardTitle}>{article.title}</span>
       <span className={styles.relatedCardMeta}>
@@ -60,6 +65,9 @@ function RelatedCard({ article, onNavigate }) {
           <span className={styles.relatedCardCat}>{article.category}</span>
         )}
         <span>{article.source}</span>
+        {article.biasTag && (
+          <span className={styles.relatedCardTag}>{article.biasTag}</span>
+        )}
       </span>
     </div>
   )
@@ -189,12 +197,6 @@ export default function ArticlePage() {
       setAgentC(prev => ({ ...prev, loading: false }))
     }
   }, [article, agentC.triggered, related.articles, updatedBias, aiData])
-
-  // ── 추천 기사 내부 이동 ───────────────────────────────────────────────────
-  const handleRelatedNavigate = useCallback((relatedArticle) => {
-    addStage1(relatedArticle)
-    navigate(`/article/${relatedArticle.id}`, { state: { article: relatedArticle } })
-  }, [addStage1, navigate])
 
   // ── article 없음 ──────────────────────────────────────────────────────────
   if (!article) {
@@ -359,7 +361,7 @@ export default function ArticlePage() {
           {!related.loading && related.articles.length > 0 && (
             <div className={styles.relatedList}>
               {related.articles.map(a => (
-                <RelatedCard key={a.id ?? a.link} article={a} onNavigate={handleRelatedNavigate} />
+                <RelatedCard key={a.id ?? a.link} article={a} onRead={(a) => addStage1(a)} />
               ))}
             </div>
           )}
