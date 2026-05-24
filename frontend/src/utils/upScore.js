@@ -43,7 +43,7 @@ function calcOpinion(arts) {
 }
 
 // ── 언론사 성향 그룹 ──────────────────────────────────────────────────────
-export function leanGroup(source) {
+function leanGroup(source) {
   const lean = getMediaLean(source)
   if (lean === 'conservative' || lean === 'moderate_right') return 'cons'
   if (lean === 'progressive'  || lean === 'moderate_left')  return 'prog'

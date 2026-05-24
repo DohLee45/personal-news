@@ -60,7 +60,7 @@ def _count_negations(sentence: str) -> int:
     return count
 
 
-def resolve_double_negation(sentence: str, direction: str) -> str:
+def _resolve_double_negation(sentence: str, direction: str) -> str:
     """부정 표현이 2개 이상이면 방향을 반전(pro↔con)한다."""
     if direction == "neutral":
         return direction
@@ -131,7 +131,7 @@ def _calc_s_text(text: str, category: str) -> float:
     directions: list[str] = []
     for sent in sentences:
         raw_dir = _classify_sentence_direction(sent, category)
-        final_dir = resolve_double_negation(sent, raw_dir)
+        final_dir = _resolve_double_negation(sent, raw_dir)
         directions.append(final_dir)
 
     total = len(directions)

@@ -34,16 +34,6 @@ export function addSearch(query) {
   saveSearchHistory(list)
 }
 
-/**
- * 특정 검색어 삭제 후 갱신된 목록 반환
- * 호출 후 setHistory(result)로 React state 갱신 필요
- */
-export function removeSearch(query) {
-  const list = loadSearchHistory().filter(h => h.q !== query)
-  saveSearchHistory(list)
-  return list
-}
-
 /** 검색기록 전체 삭제 */
 export function clearSearchHistory() {
   try { localStorage.removeItem(KEY) } catch {}
