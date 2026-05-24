@@ -32,11 +32,12 @@ The Vite dev proxy forwards `/api/*` → `localhost:8000`. In production, `main.
 
 ### 1. Article bias analysis pipeline (backend-only, synchronous at fetch time)
 
-Every article returned by any `/api/news`, `/api/breaking`, or `/api/ranking` endpoint already carries pre-computed bias fields. The analysis runs once during RSS fetch and is never recomputed on the frontend.
+Every article returned by any `/api/news`, `/api/breaking`, or `/api/ranking` endpoint already carries pre-computed bias fields. The analysis runs once during RSS fetch and is cached for 5 minutes per `keyword:when` key.
 
 ```
-Google News RSS (feedparser, asyncio.to_thread)
-  └─ _fetch_feed()                     [news_fetcher.py]
+fetch_google_news(keyword, max_items, when="7d")   [news_fetcher.py]
+  ├─ _feed_cache hit → return cached list immediately (5-min TTL)
+  └─ cache miss → _fetch_feed()
        ├─ classify_category()          [category_classifier.py]  → category string
        └─ analyze()                    [bias_analyzer.py]
             ├─ _calc_s_media()         media_bias.json lookup
@@ -67,24 +68,30 @@ Google News RSS (feedparser, asyncio.to_thread)
 | 0.30–0.60 | 성향 있음 🟡 | 관점 포함 🟡 |
 | ≥ 0.60 | 편향 주의 🔴 | 강한 논조 🔴 |
 
+**`when` parameter:** All `fetch_google_news` callers pass an explicit `when` value:
+- 메인 피드 `/api/news`: `when` is a query param (default `"7d"`); search requests send `when=20d`
+- 속보 `/api/breaking`: `when="1d"` (fixed)
+- 인기 `/api/ranking`: `when="7d"` (fixed)
+- 추천 `recommendation.py`: `when="7d"` with 14d fallback
+
 ---
 
 ### 2. Frontend article history — 2-stage save (`hooks/useHistory.js`)
 
 ```
-Card click
+Card click (MainPage / RelatedCard)
   └─ addStage1(article)
        • detectDebateStage1(title)   [utils/debateDetector.js]
          JS port of backend Rule 2 only (kw_score ≥ 8 → true, else null)
-       • Saves to pn_history with _stage:1, is_debate = backend value ?? Stage1 result
+       • Saves to pn_history with _stage:1
 
-Article detail page (STEP 8, not yet implemented)
+ArticlePage — POST /api/analysis completes
   └─ updateStage2(id, patch)
-       • Overwrites is_debate, biasTag, biasScore after full body crawl
+       • Overwrites is_debate, biasTag, biasScore with full-body analysis result
        • Sets _stage:2
 ```
 
-`pn_history` max 100 items — oldest deleted on overflow. Duplicate `id` → move to front + update `clickedAt`.
+`pn_history` max 100 items — oldest deleted on overflow. Duplicate `id` → move to front + update `clickedAt`. Clicking a related article (internal navigation) also calls `addStage1`.
 
 ---
 
@@ -105,14 +112,19 @@ Article detail page (STEP 8, not yet implemented)
 
 ### 4. Feed fetch + stale-while-revalidate (`hooks/useFeed.js`)
 
-`useFeed(category, keywords, search, history)` uses a **module-level `Map`** (not React state) as a 5-minute cache keyed by `${category}|${keywords.join(',')}|${search}`.
+`useFeed(keywords, search, history)` — **no `category` parameter**. Tab switching is client-side `articles.filter(a => a.category === activeTab)` with no API re-call.
+
+Uses a **module-level `Map`** (not React state) as a 5-minute cache keyed by `${keywords.join(',')}|${search}`.
 
 - On cache hit: serves stale data immediately → sets `isStale=true` → fetches in background
 - On cache miss: shows spinner until first response
-- Only `isLoading && articles.length === 0` triggers the blocking spinner; background revalidation is non-blocking
+- Only `isLoading && articles.length === 0` triggers the blocking spinner
 - `refresh()` deletes the cache entry before re-fetching
+- `DEFAULT_KW = ['정치', '경제', '사회', 'AI', '스포츠', '연예']` — used when user has no keywords
 
-**Cache key changes** (tab switch, keyword change, new search) trigger a new fetch and abort the previous `AbortController`.
+**Fetch URLs:**
+- Regular feed: `/api/news?keywords=...&max=50` (no `when` → backend default `7d`)
+- Search: `/api/news?keywords=...&max=40&when=20d`
 
 ---
 
@@ -120,40 +132,61 @@ Article detail page (STEP 8, not yet implemented)
 
 ```
 Input change
-  ├─ onInstantSearch(q)   fires immediately → filters already-loaded articles in MainPage
-  └─ debounce 300ms → onSearch(q) → triggers RSS API fetch via useFeed
+  ├─ onInstantSearch(q)   fires immediately → client-side filter in MainPage
+  └─ debounce 300ms → onSearch(q) → RSS API fetch via useFeed
 
 Enter key
-  └─ clears debounce → onSearch(q) immediately
+  ├─ clears debounce → onSearch(q) immediately
+  └─ persistHistory(q)    ← ONLY Enter saves to pn_search_history
+                            (typing/debounce does NOT save history)
 ```
 
-**ArticleCard display mode** based on search type:
-- In-app filter (`instantQuery` set): `isSearchResult=false` → shows full `biasTag`
-- RSS new search (`rssQuery` set, no `instantQuery`): `isSearchResult=true` → shows only S_media from `utils/mediaBias.js` client lookup (27 Korean media outlets), with note "상세 진입 시 전체 분석 표시"
+---
+
+### 6. ArticlePage — progressive loading
+
+Immediately shows title, category, bias bar, and original link from router `state`. Then fires two parallel requests:
+
+```
+useEffect parallel:
+  ├─ POST /api/analysis  (crawl + Agent A, 5–15 s)
+  │    → skeleton UI while loading → AI summary + bias explanation on complete
+  │    → updateStage2() called after completion
+  └─ GET  /api/related   (RSS recommendation, 2–5 s)
+       → shows related articles as soon as available
+       → clicking a related article → addStage1() + navigate('/article/id') [internal]
+```
+
+**Skeleton UI:** `analysisPhase === 'loading'` renders `.skeletonSection` with shimmer bars instead of a spinner. CSS `@keyframes shimmer` is defined in `ArticlePage.module.css`.
+
+**Section title** for recommendations: `is_debate` → "다른 논조 기사"; else → "다른 시각 기사".
 
 ---
 
-## Backend TODO Stubs (not yet implemented)
+### 7. Recommendation (`services/recommendation.py`)
 
-These files contain only `# TODO` comments and will be implemented in later STEPs:
+`get_related_articles(title, source, exclude_url, is_debate)` handles **both debate and non-debate articles** (no early return on `is_debate=False`).
 
-| File | STEP | Purpose |
-|------|------|---------|
-| `services/article_cache.py` | 7 | In-memory cache, 6-hour TTL, md5(URL) key |
-| `services/ai_writer.py` | 7 | Agent A — OpenRouter summary + bias analysis |
-| `services/recommendation.py` | 7 | Agent C — related article recommendations |
-| `services/crawler.py` | 8 | httpx + BeautifulSoup body crawl |
-| `routers/analysis.py` | 7 | POST /api/analysis (currently returns stub message) |
+**2-stage fallback:**
+1. Fetch `when="7d"` → if ≥ 3 results, use them
+2. If < 3 results → retry with `when="14d"`
+3. If still 0 → return empty list
 
-`services/usage_tracker.py` — also a stub; will enforce 90 calls/day + 20/min rate limit for OpenRouter.
+**Filter logic:** opposite-lean articles per `media_bias.json`, same source ≤ 2 items, total ≤ 5.
 
 ---
 
-## Frontend TODO Stubs
+## Caching Architecture
 
-- `utils/biasDetector.js` — stub (`// TODO`), not yet used anywhere
-- `pages/ArticlePage.jsx` — shows article preview from router `state`; progressive loading (crawl → AI → recommend) is STEP 8
-- `pages/AnalysisPage.jsx` — UP Score / Shannon entropy / trend chart is STEP 10
+| Layer | Location | Key | TTL |
+|-------|----------|-----|-----|
+| Backend feed | `news_fetcher._feed_cache` (dict) | `keyword:when` | 5 min |
+| Backend breaking | `breaking._cache` (dict) | single entry | 2 min |
+| Backend ranking | `ranking._cache` (dict) | single entry | 1 hr |
+| Backend market | `market._cache` (dict) | single entry | 5 min |
+| Backend article/AI | `article_cache.py` (dict) | `md5(url)` | 6 hr |
+| Frontend feed | `useFeed._cache` (module Map) | `keywords\|search` | 5 min |
+| Frontend weather | `localStorage pn_weather` | single entry | 30 min |
 
 ---
 
@@ -164,11 +197,19 @@ Four JSON files loaded with `@lru_cache(maxsize=1)` — read once, held in memor
 | File | Contents | Used by |
 |------|----------|---------|
 | `media_bias.json` | 65 언론사 `{bias, score}` | `bias_analyzer._calc_s_media()` |
-| `category_keywords.json` | 9 categories, 706 keywords | `category_classifier` |
+| `category_keywords.json` | **5 categories**, ~700 keywords | `category_classifier` |
 | `known_stance.json` | 9 issues, org→pro/con/neutral | `bias_analyzer`, `debate_detector` |
 | `debate_patterns.json` | vs_patterns(76), pro_con_pairs(28), policy(53), social(70), emotional, factual, bias | `debate_detector`, `bias_analyzer` |
 
+**5 categories**: 정치, 경제, 시사·사회, 과학기술, 스포츠·연예  
+**`_STANCE_CATEGORY_MAP`** in `bias_analyzer.py` maps these 5 article categories to `known_stance.json` issue keys.  
 **Do not regenerate these files** — they are pre-validated source data.
+
+---
+
+## Lazy Loading (App.jsx)
+
+`ArticlePage`, `AnalysisPage`, `SettingsPage` are loaded as separate Vite chunks via `React.lazy()`. `NicknamePage`, `OnboardingPage`, `MainPage` remain eagerly loaded. All routes are wrapped in `<Suspense>` with a CSS-module fallback.
 
 ---
 
