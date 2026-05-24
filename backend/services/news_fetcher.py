@@ -81,7 +81,7 @@ def _fetch_feed(url: str, max_items: int) -> list[dict]:
     return articles
 
 
-async def fetch_google_news(keyword: str, max_items: int = 20, when: str = "7d") -> list[dict]:
+async def fetch_google_news(keyword: str, max_items: int = 20, when: str = "30d") -> list[dict]:
     """Google News RSS에서 키워드 기사를 비동기로 수집한다.
 
     캐시 전략: keyword:when 조합으로 5분 인메모리 캐시.

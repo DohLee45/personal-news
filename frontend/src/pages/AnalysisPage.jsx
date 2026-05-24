@@ -1,7 +1,7 @@
 /**
  * AnalysisPage — 편향 열람 분석 (STEP 10)
  *
- * 분석 대상: pn_history 中 stage2Updated=true 최근 30건 (Stage 2 완료 기사)
+ * 분석 대상: pn_history 중 stage2Updated=true 최근 30건 (Stage 2 완료 기사)
  * 저장소:   pn_analysis_history (최대 30건, 분석 시마다 추가)
  *
  * 표시 순서 (총평 → 상세):

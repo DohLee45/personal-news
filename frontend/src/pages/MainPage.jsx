@@ -168,11 +168,12 @@ export default function MainPage() {
         return (
           <section key={cat} className={styles.section}>
             <h2 className={styles.sectionTitle}>{cat}</h2>
-            {/* 각 카테고리 섹션 첫 기사: 헤드라인 크게 */}
+            {/* 첫 기사: 헤드라인 크게 */}
             <HeadlineNews article={catArticles[0]} onRead={handleRead} />
+            {/* 2~7번째 기사: 일반 카드 (최대 6건) */}
             {catArticles.length > 1 && (
               <div className={styles.grid}>
-                {catArticles.slice(1).map(a => (
+                {catArticles.slice(1, 7).map(a => (
                   <ArticleCard key={a.id} article={a} onRead={handleRead} />
                 ))}
               </div>

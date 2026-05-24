@@ -99,7 +99,7 @@ async def post_deep_analysis(body: dict) -> dict:
     article_body = await crawl_article(url)
     text_for_analysis = article_body or summary
 
-    # ② 편향 재분析 (bias_meta 구성)
+    # ② 편향 재분석 (bias_meta 구성)
     bias = analyze_bias(title, source, text_for_analysis, category)
     bias_meta: dict = {
         "bias_score":  bias.bias_score,
@@ -156,7 +156,7 @@ async def get_related(
 @router.post("/recommend")
 async def post_recommend(body: dict) -> dict:
     """
-    Agent C — 'AI 정밀 분析' 버튼 클릭 시 호출.
+    Agent C — 'AI 정밀 분석' 버튼 클릭 시 호출.
     후보 기사 중 다른 시각 기사를 선별하고 추천 사유를 반환한다.
 
     Request body:

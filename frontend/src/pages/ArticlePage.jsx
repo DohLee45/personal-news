@@ -7,7 +7,7 @@
  *     POST /api/analysis  → ④ 원문 요약 (크롤링 + 앞 5문장, 1~3초)
  *     GET  /api/related   → ⑤ 다른 시각 기사 (RSS 추천, 2~5초)
  *   [수동 클릭, API 1회]
- *     POST /api/deep-analysis → ⑥ AI 정밀 분析 (편향 설명 + 배경 + 교차검증)
+ *     POST /api/deep-analysis → ⑥ AI 정밀 분석 (편향 설명 + 배경 + 교차검증)
  *
  * Stage 2 히스토리 업데이트:
  *   POST /api/analysis 완료 후 updated_bias 로 updateStage2() 호출
@@ -62,7 +62,7 @@ export default function ArticlePage() {
   // 추천 기사
   const [related, setRelated] = useState({ loading: true, articles: [] })
 
-  // AI 정밀 분析
+  // AI 정밀 분석
   const [deepPhase, setDeepPhase] = useState('idle') // 'idle'|'loading'|'done'|'error'
   const [deepData,  setDeepData]  = useState(null)
 
@@ -136,7 +136,7 @@ export default function ArticlePage() {
     return () => ctrl.abort()
   }, [article, updateStage2])
 
-  // ── AI 정밀 분析 호출 ─────────────────────────────────────────────────────
+  // ── AI 정밀 분석 호출 ─────────────────────────────────────────────────────
   const handleDeepAnalysis = useCallback(async () => {
     if (deepPhase !== 'idle' || !article) return
     setDeepPhase('loading')
@@ -181,7 +181,7 @@ export default function ArticlePage() {
     )
   }
 
-  // 편향 표시값: 분析 결과 있으면 updated, 없으면 router state
+  // 편향 표시값: 분석 결과 있으면 updated, 없으면 router state
   const displayScore = updatedBias?.biasScore ?? article.biasScore ?? 0
   const displayTag   = updatedBias?.biasTag   ?? article.biasTag   ?? ''
 
@@ -282,15 +282,15 @@ export default function ArticlePage() {
           )}
         </div>
 
-        {/* ── 4-4. AI 정밀 分析 버튼 (클릭 시 API 1회) ─────────────────── */}
+        {/* ── 4-4. AI 정밀 분석 버튼 (클릭 시 API 1회) ─────────────────── */}
         <div className={styles.agentCWrap}>
           {deepPhase === 'idle' && (
             <>
               <button className={styles.agentCBtn} onClick={handleDeepAnalysis}>
-                🔍 AI 정밀 분析
+                🔍 AI 정밀 분석
               </button>
               <p className={styles.agentCHint}>
-                AI가 기사의 편향성을 정밀 분析합니다 (API 1회 소모)
+                AI가 기사의 편향성을 정밀 분석합니다 (API 1회 소모)
               </p>
             </>
           )}
@@ -298,12 +298,12 @@ export default function ArticlePage() {
           {deepPhase === 'loading' && (
             <div className={styles.agentCLoadingBox}>
               <div className={styles.spinner} />
-              <p className={styles.loadingText}>AI가 분析 중입니다...</p>
+              <p className={styles.loadingText}>AI가 분석 중입니다...</p>
             </div>
           )}
 
           {deepPhase === 'error' && (
-            <p className={styles.agentCUnavailable}>분析 중 오류가 발생했습니다.</p>
+            <p className={styles.agentCUnavailable}>분석 중 오류가 발생했습니다.</p>
           )}
 
           {deepPhase === 'done' && deepData?.ai_unavailable && (
@@ -313,7 +313,7 @@ export default function ArticlePage() {
           )}
         </div>
 
-        {/* ── 4-4. AI 정밀 分析 결과 ────────────────────────────────────── */}
+        {/* ── 4-4. AI 정밀 분석 결과 ────────────────────────────────────── */}
         {deepPhase === 'done' && deepData && !deepData.ai_unavailable && (
           <>
             {deepData.bias_explanation && (
