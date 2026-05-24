@@ -1,0 +1,523 @@
+/* SettingsPage.module.css */
+
+/* ── 전체 레이아웃 ──────────────────────────────────────────────────────────── */
+.page {
+  min-height: 100vh;
+  background: var(--color-bg);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── 헤더 ──────────────────────────────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.back {
+  font-size: 0.9rem;
+  color: var(--color-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* ── 탭 바 ──────────────────────────────────────────────────────────────────── */
+.tabBar {
+  display: flex;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.tab {
+  flex: 1;
+  padding: 13px 8px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--color-text-sub);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.tab:hover { color: var(--color-text); }
+
+.tabActive {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+  font-weight: 700;
+}
+
+/* ── 탭 콘텐츠 공통 ─────────────────────────────────────────────────────────── */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 16px 80px;
+}
+
+/* ── 섹션 카드 ──────────────────────────────────────────────────────────────── */
+.section {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-bottom: 12px;
+  border: 1px solid var(--color-border);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+/* sectionHeader 안에서 sectionLabel은 하단 여백 제거 */
+.sectionHeader .sectionLabel {
+  margin-bottom: 0;
+}
+
+.sectionLabel {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-text-sub);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 키워드 수 배지 */
+.counter {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--color-chip-sel);
+  color: var(--color-primary);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.counterMax {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+/* 빈 상태 텍스트 */
+.empty {
+  font-size: 0.88rem;
+  color: var(--color-text-sub);
+  padding: 6px 0;
+}
+
+/* ── 현재 등록 키워드 칩 ─────────────────────────────────────────────────────── */
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.currentChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: var(--color-chip-sel);
+  color: var(--color-primary);
+  border: 1.5px solid var(--color-primary);
+}
+
+.chipX {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  opacity: 0.7;
+  padding: 0;
+  line-height: 1;
+  transition: opacity 0.12s;
+}
+
+.chipX:hover { opacity: 1; }
+
+/* ── 카테고리 탭 (키워드 추가용) ────────────────────────────────────────────── */
+.catTabBar {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 12px;
+  margin-bottom: 2px;
+}
+
+.catTabBar::-webkit-scrollbar { display: none; }
+
+.catTab {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border-radius: 16px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--color-text-sub);
+  background: var(--color-chip-bg);
+  border: 1.5px solid transparent;
+  transition: all 0.12s;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.catTab:hover { background: #e8e8e8; }
+
+.catTabActive {
+  color: var(--color-primary);
+  background: var(--color-chip-sel);
+  border-color: var(--color-primary);
+  font-weight: 700;
+}
+
+/* ── 키워드 칩 그리드 ───────────────────────────────────────────────────────── */
+.kwGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.kwChip {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  background: var(--color-chip-bg);
+  color: var(--color-text);
+  border: 1.5px solid transparent;
+  transition: all 0.12s;
+  cursor: pointer;
+  user-select: none;
+}
+
+.kwChip:hover:not(:disabled) { background: #e8e8e8; }
+
+.kwChipSel {
+  background: var(--color-chip-sel);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  font-weight: 600;
+}
+
+.kwChipDis {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.checkMark {
+  font-size: 0.75rem;
+}
+
+/* ── 검색기록에서 추가 ───────────────────────────────────────────────────────── */
+.fromSearchList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fromSearchItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 4px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.fromSearchItem:last-child { border-bottom: none; }
+
+.fromSearchIcon {
+  font-size: 0.85rem;
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+.fromSearchQ {
+  flex: 1;
+  font-size: 0.9rem;
+  color: var(--color-text);
+}
+
+.addedBadge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #27ae60;
+  background: rgba(39, 174, 96, 0.1);
+  padding: 3px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.addBtn {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  background: var(--color-chip-sel);
+  border: 1px solid var(--color-primary);
+  padding: 4px 10px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: opacity 0.12s;
+  white-space: nowrap;
+}
+
+.addBtn:hover:not(:disabled) { opacity: 0.8; }
+.addBtn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* ── 저장 버튼 행 ───────────────────────────────────────────────────────────── */
+.saveRow {
+  margin-top: 8px;
+}
+
+.saveBtn {
+  width: 100%;
+  padding: 14px;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.saveBtn:hover:not(:disabled) { opacity: 0.88; }
+
+.saveBtn:disabled {
+  background: var(--color-chip-bg);
+  color: var(--color-text-sub);
+  cursor: default;
+}
+
+/* ── 검색기록 탭 ─────────────────────────────────────────────────────────────── */
+.clearBtn {
+  font-size: 0.82rem;
+  color: #e74c3c;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0;
+  transition: opacity 0.12s;
+}
+
+.clearBtn:hover { opacity: 0.75; }
+
+.searchHistList {
+  display: flex;
+  flex-direction: column;
+}
+
+.searchHistItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 4px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.searchHistItem:last-child { border-bottom: none; }
+
+.searchHistIcon {
+  font-size: 0.9rem;
+  opacity: 0.55;
+  flex-shrink: 0;
+}
+
+.searchHistInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.searchHistQ {
+  font-size: 0.92rem;
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.searchHistDate {
+  font-size: 0.75rem;
+  color: var(--color-text-sub);
+}
+
+.deleteBtn {
+  font-size: 0.75rem;
+  color: var(--color-text-sub);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  transition: background 0.12s, color 0.12s;
+  flex-shrink: 0;
+}
+
+.deleteBtn:hover {
+  background: #fdecea;
+  color: #e74c3c;
+}
+
+/* ── 프로필 탭 ──────────────────────────────────────────────────────────────── */
+.profileRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nickDisplay {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.editBtn {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  background: var(--color-chip-sel);
+  border: 1px solid var(--color-primary);
+  padding: 5px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: opacity 0.12s;
+}
+
+.editBtn:hover { opacity: 0.8; }
+
+.nickEditBox {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nickInputRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nickInput {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  color: var(--color-text);
+  background: var(--color-bg);
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.nickInput:focus { border-color: var(--color-primary); }
+
+.inputError { border-color: #e74c3c !important; }
+
+.nickCounter {
+  font-size: 0.78rem;
+  color: var(--color-text-sub);
+  white-space: nowrap;
+}
+
+.nickError {
+  font-size: 0.8rem;
+  color: #e74c3c;
+  margin-top: -2px;
+}
+
+.nickBtnRow {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.cancelBtn {
+  flex: 1;
+  padding: 11px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-sub);
+  background: var(--color-chip-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.cancelBtn:hover { background: #e8e8e8; }
+
+/* profile tab save button: re-uses .saveBtn but not full-width */
+.nickBtnRow .saveBtn {
+  flex: 2;
+  width: auto;
+  padding: 11px;
+  font-size: 0.9rem;
+}
+
+/* ── 토스트 ─────────────────────────────────────────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(12px);
+  background: #222;
+  color: #fff;
+  padding: 11px 22px;
+  border-radius: var(--radius-md);
+  font-size: 0.88rem;
+  font-weight: 500;
+  opacity: 0;
+  pointer-events: none;
+  animation: toastIn 0.22s ease forwards, toastOut 0.22s ease 1.5s forwards;
+  white-space: nowrap;
+  z-index: 9999;
+}
+
+@keyframes toastIn {
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+@keyframes toastOut {
+  to { opacity: 0; transform: translateX(-50%) translateY(12px); }
+}
+
+/* ── 모바일 ──────────────────────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .content { padding: 12px 12px 80px; }
+  .tab { font-size: 0.82rem; padding: 12px 4px; }
+}

@@ -1,0 +1,6 @@
+/* Sidebar.module.css */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}

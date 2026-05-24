@@ -1,0 +1,32 @@
+# ── Python ──────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+.env
+.env.*
+!.env.example
+venv/
+.venv/
+env/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ── Node ─────────────────────────────────────────────────
+node_modules/
+frontend/dist/
+
+# ── 빌드 산출물 (Render 배포 시 빌드 명령어로 생성됨) ────
+backend/static/
+
+# ── IDE / OS ─────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini

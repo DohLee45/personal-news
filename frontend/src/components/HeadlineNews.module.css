@@ -1,0 +1,100 @@
+/* HeadlineNews.module.css */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-primary);
+  cursor: pointer;
+  transition: box-shadow 0.18s, transform 0.12s;
+  outline: none;
+  margin-bottom: 16px;
+}
+.card:hover, .card:focus-visible {
+  box-shadow: var(--shadow-card);
+  transform: translateY(-2px);
+}
+
+/* 상단 메타 */
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--color-primary);
+  padding: 2px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.04em;
+}
+.category {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  background: var(--color-chip-sel);
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+.debateBadge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #e67e22;
+  background: #fef3e2;
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+.time {
+  font-size: 0.72rem;
+  color: var(--color-text-sub);
+  margin-left: auto;
+}
+
+/* 제목: 크게 */
+.title {
+  font-family: var(--font-serif);
+  font-size: 1.18rem;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.55;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 요약 */
+.summary {
+  font-size: 0.88rem;
+  color: var(--color-text-sub);
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 하단 */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+.source { font-size: 0.75rem; font-weight: 600; color: var(--color-text-sub); }
+
+.biasTag {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+.biasNeutral  { background: #eaf7ec; color: #27ae60; }
+.biasHas      { background: #fef9e7; color: #f39c12; }
+.biasWarning  { background: #fdedec; color: #e74c3c; }

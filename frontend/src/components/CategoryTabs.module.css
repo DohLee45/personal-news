@@ -1,0 +1,46 @@
+/* CategoryTabs.module.css */
+.bar {
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 66px;   /* Header 높이(64) + line(2) */
+  z-index: 90;
+}
+
+.inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 16px;
+}
+
+.inner::-webkit-scrollbar { display: none; }
+
+.tab {
+  flex-shrink: 0;
+  padding: 13px 18px 11px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-text-sub);
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+  background: none;
+}
+
+.tab:hover { color: var(--color-text); }
+
+.tabActive {
+  color: var(--color-primary);
+  font-weight: 700;
+  border-bottom-color: var(--color-primary);
+}
+
+@media (max-width: 600px) {
+  .tab { padding: 10px 14px 8px; font-size: 0.85rem; }
+  .bar { top: 58px; }
+}

@@ -1,0 +1,430 @@
+/* ArticlePage.module.css */
+
+/* ── 레이아웃 ──────────────────────────────────────────────────────────────── */
+.page {
+  min-height: 100vh;
+  background: var(--color-bg);
+}
+
+.body {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px 20px 80px;
+}
+
+.back {
+  font-size: 0.9rem;
+  color: var(--color-primary);
+  margin-bottom: 20px;
+  display: inline-block;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* ── 기사 헤더 ─────────────────────────────────────────────────────────────── */
+.card {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding: 28px;
+  border: 1px solid var(--color-border);
+  margin-bottom: 16px;
+}
+
+.cat {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  background: var(--color-chip-sel);
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+
+.title {
+  font-family: var(--font-serif);
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+.meta {
+  font-size: 0.82rem;
+  color: var(--color-text-sub);
+  margin-bottom: 20px;
+}
+
+/* ── 편향도 바 ─────────────────────────────────────────────────────────────── */
+.biasRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.biasLabel {
+  font-size: 0.8rem;
+  color: var(--color-text-sub);
+  white-space: nowrap;
+}
+
+.biasBarWrap {
+  flex: 1;
+  min-width: 120px;
+  height: 8px;
+  background: var(--color-border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.biasBarFill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.biasBarFill.green  { background: #27ae60; }
+.biasBarFill.yellow { background: #f39c12; }
+.biasBarFill.red    { background: #e74c3c; }
+
+.biasTag {
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.biasScore {
+  font-size: 0.78rem;
+  color: var(--color-text-sub);
+  white-space: nowrap;
+}
+
+/* ── 원문 링크 ─────────────────────────────────────────────────────────────── */
+.originalLink {
+  display: inline-block;
+  color: var(--color-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-bottom: 1px solid var(--color-primary);
+  padding-bottom: 2px;
+  text-decoration: none;
+}
+
+/* ── 로딩 ───────────────────────────────────────────────────────────────────── */
+.loadingBox {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  padding: 28px;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.spinner {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+  margin-bottom: 12px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loadingText {
+  font-size: 0.9rem;
+  color: var(--color-text-sub);
+}
+
+/* ── AI 분석 섹션 ──────────────────────────────────────────────────────────── */
+.section {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  padding: 24px 28px;
+  margin-bottom: 16px;
+}
+
+.sectionTitle {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--color-text-sub);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.summaryList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.summaryItem {
+  font-size: 0.95rem;
+  color: var(--color-text);
+  line-height: 1.65;
+  padding-left: 18px;
+  position: relative;
+}
+
+.summaryItem::before {
+  content: "•";
+  position: absolute;
+  left: 4px;
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.analysisText {
+  font-size: 0.93rem;
+  color: var(--color-text);
+  line-height: 1.7;
+}
+
+.analysisTextMt {
+  margin-top: 14px;
+}
+
+/* ── 찬반 그리드 ───────────────────────────────────────────────────────────── */
+.proConGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.proBox,
+.conBox {
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+}
+
+.proBox {
+  background: rgba(39, 174, 96, 0.08);
+  border: 1px solid rgba(39, 174, 96, 0.25);
+}
+
+.conBox {
+  background: rgba(231, 76, 60, 0.08);
+  border: 1px solid rgba(231, 76, 60, 0.25);
+}
+
+.proConLabel {
+  font-size: 0.78rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.proBox .proConLabel { color: #27ae60; }
+.conBox .proConLabel { color: #e74c3c; }
+
+.proConText {
+  font-size: 0.88rem;
+  color: var(--color-text);
+  line-height: 1.6;
+}
+
+/* ── 다른 논조 추천 ────────────────────────────────────────────────────────── */
+.relatedSection {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  padding: 24px 28px;
+  margin-bottom: 16px;
+}
+
+.relatedTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 16px;
+}
+
+.relatedList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.relatedCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  cursor: pointer;
+  text-decoration: none;
+  transition: border-color 0.15s;
+}
+
+.relatedCard:hover {
+  border-color: var(--color-primary);
+}
+
+.relatedCardTitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.45;
+}
+
+.relatedCardMeta {
+  font-size: 0.78rem;
+  color: var(--color-text-sub);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.relatedCardTag {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+}
+
+.nonDebateMsg {
+  font-size: 0.88rem;
+  color: var(--color-text-sub);
+  padding: 8px 0;
+}
+
+/* ── Agent C 정밀 분석 ─────────────────────────────────────────────────────── */
+.agentCWrap {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  padding: 24px 28px;
+  margin-bottom: 16px;
+}
+
+.agentCLoadingBox {
+  text-align: center;
+  padding: 16px 0;
+}
+
+.agentCBtn {
+  width: 100%;
+  padding: 13px;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.agentCBtn:hover { opacity: 0.88; }
+.agentCBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.agentCHint {
+  font-size: 0.8rem;
+  color: var(--color-text-sub);
+  text-align: center;
+  margin-top: 8px;
+}
+
+.agentCResultList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.agentCResultCard {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  background: var(--color-bg);
+}
+
+.agentCResultTitle {
+  display: block;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.45;
+  margin-bottom: 6px;
+}
+
+.agentCResultReason {
+  font-size: 0.82rem;
+  color: var(--color-text-sub);
+  line-height: 1.5;
+}
+
+.agentCUnavailable {
+  font-size: 0.88rem;
+  color: var(--color-text-sub);
+  text-align: center;
+  padding: 10px 0;
+}
+
+/* ── 에러 상태 ─────────────────────────────────────────────────────────────── */
+.errorBox {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  padding: 28px;
+  text-align: center;
+  color: var(--color-text-sub);
+  font-size: 0.9rem;
+  margin-bottom: 16px;
+}
+
+.placeholder {
+  color: var(--color-text-sub);
+  font-size: 0.88rem;
+  padding: 32px 0;
+  text-align: center;
+}
+
+/* ── 모바일 600px 이하 ──────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .body {
+    padding: 16px 1rem 60px;
+  }
+
+  .title {
+    font-size: 1.375rem; /* 22px */
+  }
+
+  .analysisText,
+  .proConText,
+  .summaryItem {
+    font-size: 1rem; /* 16px */
+  }
+
+  .card,
+  .section,
+  .relatedSection,
+  .agentCWrap,
+  .loadingBox {
+    padding: 18px 1rem;
+  }
+
+  .proConGrid {
+    grid-template-columns: 1fr; /* 1열 */
+  }
+}

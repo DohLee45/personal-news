@@ -1,0 +1,29 @@
+##############################################################
+# render.yaml — Personal NEWS Render 배포 설정
+#
+# 배포 흐름:
+#   1) buildCommand: Python 의존성 설치 + React 빌드
+#      → frontend/dist → backend/static/ (vite.config.js outDir)
+#   2) startCommand: start.sh → cd backend → uvicorn main:app
+#
+# 환경 변수:
+#   Render Dashboard → Environment → OPENROUTER_API_KEY 직접 입력
+##############################################################
+
+services:
+  - type: web
+    name: personal-news
+    env: python
+    plan: free
+
+    buildCommand: |
+      pip install -r backend/requirements.txt &&
+      cd frontend && npm ci && npm run build
+
+    startCommand: bash start.sh
+
+    healthCheckPath: /api/health
+
+    envVars:
+      - key: OPENROUTER_API_KEY
+        sync: false          # Render Dashboard에서 직접 입력 (비밀값)

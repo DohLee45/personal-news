@@ -1,0 +1,12 @@
+# 모든 텍스트 파일: LF로 정규화 (Linux/Render 배포 환경 기준)
+* text=auto eol=lf
+
+# 셸 스크립트: 반드시 LF (Windows에서 CRLF이면 실행 불가)
+*.sh text eol=lf
+
+# 바이너리 파일: EOL 변환 없음
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff2 binary
+*.ttf binary

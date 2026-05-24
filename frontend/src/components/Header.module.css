@@ -1,0 +1,93 @@
+/* Header.module.css */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--color-surface);
+  box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+}
+
+.inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 64px;
+}
+
+/* 로고 영역 */
+.brand {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex-shrink: 0;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.logo {
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  letter-spacing: -0.3px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.sub {
+  font-size: 0.72rem;
+  color: var(--color-text-sub);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 중앙 확장 공간 */
+.spacer { flex: 1; }
+
+/* 검색바 래퍼 */
+.searchWrap {
+  flex: 0 1 340px;
+  min-width: 0;
+}
+
+/* 우측 버튼 그룹 */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.iconBtn {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  font-size: 1.15rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-sub);
+  transition: background 0.15s, color 0.15s;
+}
+
+.iconBtn:hover {
+  background: var(--color-chip-bg);
+  color: var(--color-text);
+}
+
+/* 하단 구분선 */
+.line {
+  height: 2px;
+  background: var(--color-primary);
+}
+
+/* 반응형 */
+@media (max-width: 600px) {
+  .inner { gap: 8px; padding: 0 12px; }
+  .searchWrap { flex: 1; }
+  .sub { display: none; }
+}

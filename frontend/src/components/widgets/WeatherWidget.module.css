@@ -1,0 +1,70 @@
+/* WeatherWidget.module.css */
+.widget {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  padding: 14px;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.location {
+  font-size: 0.72rem;
+  color: var(--color-text-sub);
+}
+
+.body {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.emoji {
+  font-size: 2.4rem;
+  line-height: 1;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.temp {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.2;
+}
+
+.label {
+  font-size: 0.82rem;
+  color: var(--color-text-sub);
+}
+
+.details {
+  margin-top: 10px;
+  display: flex;
+  gap: 16px;
+  font-size: 0.78rem;
+  color: var(--color-text-sub);
+}
+
+.loading, .error {
+  font-size: 0.82rem;
+  color: var(--color-text-sub);
+  text-align: center;
+  padding: 10px 0;
+}
+.error { color: #e74c3c; }

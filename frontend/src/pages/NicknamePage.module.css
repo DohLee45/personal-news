@@ -1,0 +1,131 @@
+/* NicknamePage.module.css */
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg);
+  padding: 24px;
+}
+
+.card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 52px 48px 48px;
+  width: 100%;
+  max-width: 440px;
+  text-align: center;
+}
+
+/* 로고 */
+.logo {
+  font-family: var(--font-serif);
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  letter-spacing: -0.5px;
+  margin-bottom: 8px;
+}
+
+.tagline {
+  font-size: 0.9rem;
+  color: var(--color-text-sub);
+  margin-bottom: 36px;
+  line-height: 1.6;
+}
+
+/* 입력 폼 */
+.label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-sub);
+  text-align: left;
+  margin-bottom: 8px;
+}
+
+.inputWrap {
+  position: relative;
+  margin-bottom: 6px;
+}
+
+.input {
+  width: 100%;
+  padding: 14px 48px 14px 16px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  color: var(--color-text);
+  background: var(--color-bg);
+  transition: border-color 0.18s;
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--color-primary);
+}
+
+.input.error {
+  border-color: #e74c3c;
+}
+
+.counter {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.78rem;
+  color: var(--color-text-sub);
+  pointer-events: none;
+}
+
+.errorMsg {
+  font-size: 0.8rem;
+  color: #e74c3c;
+  text-align: left;
+  min-height: 20px;
+  margin-bottom: 20px;
+}
+
+/* 버튼 */
+.btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  transition: background 0.18s, transform 0.1s;
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* 하단 설명 */
+.features {
+  margin-top: 32px;
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.feature {
+  font-size: 0.78rem;
+  color: var(--color-text-sub);
+  background: var(--color-chip-bg);
+  border-radius: 20px;
+  padding: 5px 12px;
+}

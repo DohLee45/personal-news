@@ -1,0 +1,466 @@
+/* AnalysisPage.module.css */
+
+/* ── 레이아웃 ──────────────────────────────────────────────────────────── */
+.page { min-height: 100vh; background: var(--color-bg); }
+
+.body {
+  max-width: 840px;
+  margin: 0 auto;
+  padding: 24px 20px 80px;
+}
+
+/* ── 페이지 헤더 ─────────────────────────────────────────────────────── */
+.pageTitle {
+  font-family: var(--font-serif);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 20px;
+}
+
+/* ── 분석 버튼 ───────────────────────────────────────────────────────── */
+.analyzeBtn {
+  width: 100%;
+  padding: 16px;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: opacity 0.15s;
+  margin-bottom: 24px;
+}
+.analyzeBtn:hover { opacity: 0.88; }
+.analyzeBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── 섹션 카드 ───────────────────────────────────────────────────────── */
+.card {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  padding: 22px 24px;
+  margin-bottom: 14px;
+}
+
+.sectionTitle {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-text-sub);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── 총평 카드 ───────────────────────────────────────────────────────── */
+.summaryCard {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  padding: 28px 24px 24px;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+.circleWrap { position: relative; }
+.circlesvg  { display: block; }
+
+.gradeBadge {
+  display: inline-block;
+  padding: 5px 20px;
+  border-radius: 20px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.msgs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.msg {
+  font-size: 0.88rem;
+  color: var(--color-text);
+  background: var(--color-chip-bg);
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  line-height: 1.5;
+}
+.msg::before { content: '💡 '; }
+
+.subCards {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.subCard {
+  flex: 1;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  text-align: center;
+}
+
+.subCardLabel {
+  font-size: 0.75rem;
+  color: var(--color-text-sub);
+  margin-bottom: 4px;
+}
+
+.subCardValue {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.subCardUnit {
+  font-size: 0.72rem;
+  color: var(--color-text-sub);
+  margin-top: 2px;
+}
+
+/* 이봉성 경고 */
+.bimodalWarn {
+  width: 100%;
+  background: rgba(231,76,60,0.08);
+  border: 1px solid rgba(231,76,60,0.3);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  color: #c0392b;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 섹션 구분선 */
+.divider {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-text-sub);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 24px 0 10px;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
+}
+
+/* ── 가로 진행바 ─────────────────────────────────────────────────────── */
+.barRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.barLabel {
+  font-size: 0.82rem;
+  color: var(--color-text);
+  min-width: 52px;
+  text-align: right;
+}
+.barTrack {
+  flex: 1;
+  height: 10px;
+  background: var(--color-border);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.barFill {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.5s ease;
+}
+.barPct {
+  font-size: 0.78rem;
+  color: var(--color-text-sub);
+  min-width: 38px;
+}
+.barCount {
+  font-size: 0.75rem;
+  color: var(--color-text-sub);
+  min-width: 30px;
+  text-align: right;
+}
+
+/* ── 스택 바 ─────────────────────────────────────────────────────────── */
+.stackBar {
+  display: flex;
+  height: 12px;
+  border-radius: 6px;
+  overflow: hidden;
+  width: 100%;
+}
+.stackSeg { height: 100%; }
+
+.stackRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.stackLabel {
+  font-size: 0.82rem;
+  color: var(--color-text);
+  min-width: 64px;
+}
+.stackBarWrap { flex: 1; }
+
+/* ── 관점분포 비율 ───────────────────────────────────────────────────── */
+.viewpointLegend {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  color: var(--color-text-sub);
+}
+.legendDot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── 데이터 없음 텍스트 (공용) ─────────────────────────────────────────── */
+.noDataMsg {
+  font-size: 0.85rem;
+  color: var(--color-text-sub);
+}
+
+/* ── 4요소 가중치 레이블 ─────────────────────────────────────────────────── */
+.compWeight {
+  color: var(--color-text-sub);
+  font-weight: 400;
+}
+
+/* ── 4요소 세부 ──────────────────────────────────────────────────────── */
+.compRow {
+  margin-bottom: 16px;
+}
+.compHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+.compName {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+.compVal {
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+.compTrack {
+  height: 8px;
+  background: var(--color-border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 5px;
+}
+.compFill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+.compDesc {
+  font-size: 0.77rem;
+  color: var(--color-text-sub);
+  line-height: 1.45;
+}
+
+/* ── 카테고리 편향 분포 판정 ─────────────────────────────────────────── */
+.catBiasRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.catBiasRow:last-child { border-bottom: none; }
+
+.catBiasName {
+  font-size: 0.83rem;
+  color: var(--color-text);
+  min-width: 68px;
+}
+.catBiasBarWrap { flex: 1; }
+.catBiasNoData {
+  font-size: 0.77rem;
+  color: var(--color-text-sub);
+}
+.catBiasIcon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+/* ── 언론사 Top5 ─────────────────────────────────────────────────────── */
+.sourceRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.sourceRow:last-child { border-bottom: none; }
+
+.sourceRank {
+  font-size: 0.8rem;
+  color: var(--color-text-sub);
+  min-width: 18px;
+  text-align: right;
+}
+.sourceName {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-text);
+  min-width: 80px;
+}
+.sourceBarWrap { flex: 1; }
+.sourceCnt {
+  font-size: 0.75rem;
+  color: var(--color-text-sub);
+  min-width: 28px;
+  text-align: right;
+}
+
+/* 성향 비율 바 */
+.leanStackBar {
+  display: flex;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+/* 범례 (성향) */
+.leanLegend {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.leanLegendItem {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  color: var(--color-text-sub);
+}
+.leanDot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── 트렌드 그래프 ───────────────────────────────────────────────────── */
+.graphSvg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.trendSummary {
+  font-size: 0.85rem;
+  color: var(--color-text);
+  padding: 10px 12px;
+  background: var(--color-chip-bg);
+  border-radius: var(--radius-sm);
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── 안내문구 (Section⑦) ─────────────────────────────────────────────── */
+.refCard {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  padding: 18px 24px;
+  margin-bottom: 14px;
+}
+.refTitle {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-text-sub);
+  margin-bottom: 8px;
+}
+.refText {
+  font-size: 0.8rem;
+  color: var(--color-text-sub);
+  line-height: 1.7;
+}
+
+/* ── 데이터 부족 ─────────────────────────────────────────────────────── */
+.insufficient {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  padding: 28px 24px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+.insufficientIcon { font-size: 2.2rem; margin-bottom: 10px; }
+.insufficientTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 6px;
+}
+.insufficientDesc {
+  font-size: 0.85rem;
+  color: var(--color-text-sub);
+  line-height: 1.6;
+}
+
+/* ── 빈 상태 ────────────────────────────────────────────────────────── */
+.emptyState {
+  text-align: center;
+  padding: 40px 0 20px;
+}
+.emptyIcon { font-size: 2.8rem; margin-bottom: 12px; }
+.emptyTitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 6px;
+}
+.emptyDesc {
+  font-size: 0.88rem;
+  color: var(--color-text-sub);
+  line-height: 1.65;
+}
+
+/* ── 모바일 ─────────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .body { padding: 16px 14px 80px; }
+  .card, .summaryCard, .refCard { padding: 18px 16px; }
+  .barLabel, .stackLabel { min-width: 44px; font-size: 0.77rem; }
+  .catBiasName, .sourceName { min-width: 56px; font-size: 0.78rem; }
+  .subCards { flex-direction: column; }
+}

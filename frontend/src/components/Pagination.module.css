@@ -1,0 +1,38 @@
+/* Pagination.module.css */
+.wrap {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  align-items: center;
+  padding: 12px 0;
+}
+
+.btn {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--color-text-sub);
+  background: var(--color-chip-bg);
+  border: 1.5px solid transparent;
+  transition: all 0.15s;
+}
+
+.btn:hover:not(:disabled) {
+  background: #e0e0e0;
+  color: var(--color-text);
+}
+
+.btnActive {
+  background: var(--color-chip-sel);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  font-weight: 700;
+}
+
+.btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}

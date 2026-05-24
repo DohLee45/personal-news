@@ -1,0 +1,190 @@
+/* OnboardingPage.module.css */
+
+/* ── 전체 레이아웃 ─────────────────────────────── */
+.page {
+  min-height: 100vh;
+  background: var(--color-bg);
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  padding: 28px 24px 0;
+  text-align: center;
+}
+
+.title {
+  font-family: var(--font-serif);
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 6px;
+}
+
+.subtitle {
+  font-size: 0.9rem;
+  color: var(--color-text-sub);
+}
+
+/* ── 선택 카운터 배지 ─────────────────────────── */
+.counter {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 4px 14px;
+  border-radius: 20px;
+  background: var(--color-chip-sel);
+  color: var(--color-primary);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.counterMax {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+/* ── 카테고리 탭 ──────────────────────────────── */
+.tabBar {
+  display: flex;
+  gap: 6px;
+  padding: 20px 16px 0;
+  overflow-x: auto;
+  scrollbar-width: none;          /* Firefox */
+  -webkit-overflow-scrolling: touch;
+}
+
+.tabBar::-webkit-scrollbar { display: none; }
+
+.tab {
+  flex-shrink: 0;
+  padding: 7px 16px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-text-sub);
+  background: var(--color-chip-bg);
+  border: 1.5px solid transparent;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.tab:hover {
+  background: #e8e8e8;
+}
+
+.tabActive {
+  color: var(--color-primary);
+  background: var(--color-chip-sel);
+  border-color: var(--color-primary);
+  font-weight: 600;
+}
+
+/* ── 키워드 칩 그리드 ─────────────────────────── */
+.content {
+  flex: 1;
+  padding: 20px 16px 0;
+  overflow-y: auto;
+}
+
+.categoryLabel {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-sub);
+  margin-bottom: 12px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  padding: 7px 14px;
+  border-radius: 20px;
+  font-size: 0.88rem;
+  background: var(--color-chip-bg);
+  color: var(--color-text);
+  border: 1.5px solid transparent;
+  transition: all 0.15s;
+  user-select: none;
+}
+
+.chip:hover {
+  background: #e8e8e8;
+}
+
+.chipSelected {
+  background: var(--color-chip-sel);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  font-weight: 600;
+}
+
+.chipDisabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── 하단 완료 버튼 ──────────────────────────── */
+.footer {
+  padding: 16px 16px 32px;
+  background: var(--color-bg);
+  border-top: 1px solid var(--color-border);
+}
+
+.hint {
+  font-size: 0.78rem;
+  color: var(--color-text-sub);
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.submitBtn {
+  width: 100%;
+  padding: 15px;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  transition: background 0.18s, transform 0.1s;
+}
+
+.submitBtn:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.submitBtn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.submitBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── 토스트 알림 ─────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #222;
+  color: #fff;
+  padding: 12px 22px;
+  border-radius: var(--radius-md);
+  font-size: 0.88rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s, transform 0.25s;
+  white-space: nowrap;
+  z-index: 9999;
+}
+
+.toastVisible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
