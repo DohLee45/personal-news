@@ -8,17 +8,17 @@ call_openrouter(system, user, models, max_tokens=2000)
   - 전 모델 실패 → Exception 발생
 
 analyze_article(url, title, source, body, bias_meta) → dict
-  [Agent A — Personal NEWS 분석관]
-  역할: 원문요약 + 편향판별설명 + 찬반분리 + 맥락보완 + 교차검증
+  [Agent A — Personal NEWS 편향분석관]
+  역할: 편향 판별 설명 + 배경 정보 + 교차검증 포인트
   권한: ✅ 원문  ✅ 판별결과  ❌ 외부  ❌ 사용자정보  ❌ 사견
-  호출: 기사 상세 진입 시 자동 (API 1~2회)
+  호출: POST /api/deep-analysis (버튼 클릭 시 수동, API 1회)
   캐시: get_article / set_article (6시간 TTL)
 
 recommend_viewpoints(article, candidates) → dict
   [Agent C — Personal NEWS 관점 탐색기]
   역할: 같은 주제 다른 시각 기사 선별 + 추천 사유
   권한: ✅ 원본요약  ✅ 후보 제목·출처  ❌ 원문전문  ❌ 외부  ❌ 사견
-  호출: 'AI 정밀 분석' 버튼 클릭 시 수동 (API 1회)
+  호출: POST /api/recommend (수동, 유지)
   캐시: get_recommend / set_recommend (6시간 TTL)
 
 AI 3원칙 (모든 프롬프트 포함):
@@ -59,9 +59,8 @@ _BODY_LIMIT: int = 4_000
 # ── Agent A 프롬프트 ──────────────────────────────────────────────────────────
 
 _AGENT_A_SYSTEM: str = (
-    "뉴스분석관. 원문사실만 사용. AI판단금지. "
-    "찬반=원문인물발언만. 출처명시. "
-    "사실 검증 신뢰도 0.85 이상 정보만 포함. JSON만응답."
+    "뉴스편향분석관. 원문사실만 사용. 출처 명시. "
+    "사실 검증 신뢰도 0.85 이상만 포함. 사견 배제. JSON만응답."
 )
 
 # { } 중 format 변수: source, title, body, bias_score, d_opinion, d_source,
@@ -76,14 +75,9 @@ _AGENT_A_USER_TMPL: str = """\
 
 다음 JSON 형식으로만 응답하세요:
 {{
-  "summary": ["요약 문장1", "요약 문장2", "요약 문장3"],
-  "bias_explanation": "편향 판별 설명 (원문 근거)",
-  "pro_view": "찬성 측 주장 (원문 인물 발언 인용)",
-  "con_view": "반대 측 주장 (원문 인물 발언 인용)",
-  "neutral_view": "중립적 해석",
-  "context_note": "맥락 보완 및 배경 정보",
-  "ai_bias_score": 0.0,
-  "cross_check": "교차검증 포인트 (독자가 확인해야 할 사항)"
+  "bias_explanation": "편향 판별 설명 (원문 근거 포함, 2~3문장)",
+  "background": "관련 배경 정보 (역사·정책·사회적 맥락, 2~3문장)",
+  "cross_check": "교차검증 포인트 (독자가 추가로 확인해야 할 사항)"
 }}"""
 
 # ── Agent C 프롬프트 ──────────────────────────────────────────────────────────
@@ -190,9 +184,10 @@ async def analyze_article(
     bias_meta: dict[str, Any],
 ) -> dict[str, Any]:
     """
-    [Agent A — Personal NEWS 분석관]
+    [Agent A — Personal NEWS 편향분석관]
 
-    기사 원문을 바탕으로 요약·편향 설명·찬반·맥락·교차검증을 생성한다.
+    기사 원문을 바탕으로 편향 설명·배경 정보·교차검증을 생성한다.
+    ※ POST /api/deep-analysis에서 버튼 클릭 시에만 호출.
 
     Args:
         url:       기사 URL (캐시 키)
@@ -205,12 +200,11 @@ async def analyze_article(
             d_source    float  — 언론사편중도
             d_bimodal   float  — 이봉성
             d_intensity float  — 편향강도
-            bias_type   str    — 편향 유형 레이블 (e.g. "관점 포함 🟡")
+            bias_type   str    — 편향 유형 레이블
         }
 
     Returns:
-        성공: {summary, bias_explanation, pro_view, con_view,
-               neutral_view, context_note, ai_bias_score, cross_check}
+        성공: {bias_explanation, background, cross_check}
         한도초과: AI_UNAVAILABLE dict
     """
     # ① 캐시 히트
@@ -241,20 +235,15 @@ async def analyze_article(
             system=_AGENT_A_SYSTEM,
             user=user_prompt,
             models=MODELS,
-            max_tokens=2000,
+            max_tokens=1500,
         )
         result = _parse_json(raw)
     except Exception:
         return dict(AI_UNAVAILABLE)
 
     # ⑤ 필수 필드 보증
-    result.setdefault("summary",          [])
     result.setdefault("bias_explanation", "")
-    result.setdefault("pro_view",         "")
-    result.setdefault("con_view",         "")
-    result.setdefault("neutral_view",     "")
-    result.setdefault("context_note",     "")
-    result.setdefault("ai_bias_score",    0.0)
+    result.setdefault("background",       "")
     result.setdefault("cross_check",      "")
 
     # ⑥ 캐시 저장
@@ -294,13 +283,8 @@ async def recommend_viewpoints(
     if not can_use_api():
         return dict(AI_UNAVAILABLE)
 
-    # ③ 요약 텍스트 결정 (Agent A 결과 우선, 없으면 summary 필드)
+    # ③ 요약 텍스트 결정
     summary_text: str = str(article.get("summary", ""))
-    ai_analysis = article.get("ai_analysis")
-    if isinstance(ai_analysis, dict):
-        ai_summary = ai_analysis.get("summary", [])
-        if ai_summary:
-            summary_text = " ".join(str(s) for s in ai_summary[:2])
 
     # ④ 후보 목록 포매팅 (출처·제목만 노출 — 원문 전문 제외)
     if candidates:

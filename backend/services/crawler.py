@@ -13,6 +13,8 @@ crawler.py — 기사 본문 크롤링 (httpx + BeautifulSoup)
 
 from __future__ import annotations
 
+import re
+
 import httpx
 from bs4 import BeautifulSoup
 
@@ -54,6 +56,41 @@ _REQUEST_HEADERS: dict[str, str] = {
     "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8",
     "Accept": "text/html,application/xhtml+xml",
 }
+
+
+# ── 공개 유틸 ─────────────────────────────────────────────────────────────────
+
+def extract_summary(body: str, max_sentences: int = 5) -> str:
+    """크롤링 본문에서 앞 max_sentences 문장을 추출하여 요약으로 반환.
+
+    AI를 사용하지 않는 규칙 기반 추출. API 0회 소모.
+
+    Args:
+        body:          크롤링된 본문 텍스트
+        max_sentences: 최대 추출 문장 수 (기본 5)
+
+    Returns:
+        요약 문자열 또는 '' (본문 없음/짧음)
+    """
+    if not body or len(body.strip()) < 20:
+        return ""
+
+    text = body.strip()
+
+    # 바이라인 제거 (기자명·출처 표기)
+    text = re.sub(r'^[\[【(].*?[\]】)]\s*', '', text)
+    text = re.sub(r'^.*?(기자|특파원|통신원)\s*=\s*', '', text)
+
+    # 문장 분리 (마침표/다 + 공백 기준)
+    sentences = re.split(r'(?<=[.다])\s+', text)
+
+    # 10자 미만 문장 제거
+    sentences = [s.strip() for s in sentences if len(s.strip()) >= 10]
+
+    if not sentences:
+        return ""
+
+    return ' '.join(sentences[:max_sentences])
 
 
 # ── 내부 유틸 ─────────────────────────────────────────────────────────────────

@@ -1,10 +1,11 @@
 """
-routers/analysis.py — AI 기사 분석 엔드포인트 (STEP 8)
+routers/analysis.py — 기사 분석 엔드포인트 (STEP 8)
 
 엔드포인트:
-  POST /api/analysis        — 크롤링 + Agent A 분석
+  POST /api/analysis        — 크롤링 + bias 재계산 + 요약 추출 (API 0회)
+  POST /api/deep-analysis   — Agent A AI 정밀 분석 (API 1회, 수동)
   GET  /api/related         — 1차 다른 논조 추천 (RSS 재수집, 무료)
-  POST /api/recommend       — Agent C 정밀 추천 (수동)
+  POST /api/recommend       — Agent C 정밀 추천 (수동, 유지)
 """
 
 from __future__ import annotations
@@ -13,7 +14,7 @@ from fastapi import APIRouter, Query
 
 from services.ai_writer import analyze_article, recommend_viewpoints
 from services.bias_analyzer import analyze as analyze_bias
-from services.crawler import crawl_article
+from services.crawler import crawl_article, extract_summary
 from services.recommendation import get_related_articles
 
 router = APIRouter()
@@ -24,7 +25,8 @@ router = APIRouter()
 @router.post("/analysis")
 async def post_analysis(body: dict) -> dict:
     """
-    기사 본문 크롤링 + Agent A AI 분석을 수행한다.
+    기사 본문 크롤링 + bias 재계산 + 요약 추출.
+    ※ 에이전트 A 호출 없음 — API 0회 소모.
 
     Request body:
         url      str   — 기사 URL (크롤링 대상)
@@ -34,9 +36,9 @@ async def post_analysis(body: dict) -> dict:
         summary  str   — RSS 요약 (크롤링 실패 시 대체 본문)
 
     Response:
-        body_crawled  bool  — 크롤링 성공 여부
-        ai_analysis   dict  — Agent A 결과 또는 ai_unavailable 딕셔너리
-        updated_bias  dict  — 본문 재분석 후 갱신된 편향 정보
+        summary      str   — 본문 앞 5문장 추출 요약 (AI 아님)
+        body         str   — 크롤링 본문 (최대 3000자)
+        updated_bias dict  — 본문 재분석 후 갱신된 편향 정보
             {biasScore, biasTag, viewpoint}
     """
     url      = str(body.get("url",      ""))
@@ -47,12 +49,57 @@ async def post_analysis(body: dict) -> dict:
 
     # ① 크롤링 (실패 시 '' 반환)
     article_body = await crawl_article(url)
-    body_crawled = bool(article_body)
 
     # ② 본문 선택: 크롤링 본문 우선, 없으면 RSS summary
     text_for_analysis = article_body or summary
 
     # ③ 편향 재분석 (본문 포함)
+    bias = analyze_bias(title, source, text_for_analysis, category)
+
+    # ④ 본문 요약 추출 (AI 아님, 앞 5문장)
+    summary_text = extract_summary(article_body) if article_body else ""
+
+    return {
+        "summary": summary_text,
+        "body":    article_body[:3000] if article_body else "",
+        "updated_bias": {
+            "biasScore": bias.bias_score,
+            "biasTag":   bias.bias_tag,
+            "viewpoint": bias.viewpoint,
+        },
+    }
+
+
+# ── POST /api/deep-analysis ───────────────────────────────────────────────────
+
+@router.post("/deep-analysis")
+async def post_deep_analysis(body: dict) -> dict:
+    """
+    AI 정밀 분석 — 버튼 클릭 시에만 호출. API 1회 소모.
+    Agent A: 편향 판별 설명 + 배경 정보 + 교차검증 포인트.
+
+    Request body:
+        url      str   — 기사 URL (캐시 키)
+        title    str   — 기사 제목
+        source   str   — 언론사명
+        category str   — 분류 카테고리
+        summary  str   — RSS 요약 (크롤링 실패 시 대체 본문)
+
+    Response:
+        성공:    {bias_explanation, background, cross_check}
+        한도초과: {ai_unavailable: true, message: str}
+    """
+    url      = str(body.get("url",      ""))
+    title    = str(body.get("title",    ""))
+    source   = str(body.get("source",   ""))
+    category = str(body.get("category", "시사·사회"))
+    summary  = str(body.get("summary",  ""))
+
+    # ① 크롤링 (재수집)
+    article_body = await crawl_article(url)
+    text_for_analysis = article_body or summary
+
+    # ② 편향 재분析 (bias_meta 구성)
     bias = analyze_bias(title, source, text_for_analysis, category)
     bias_meta: dict = {
         "bias_score":  bias.bias_score,
@@ -63,24 +110,14 @@ async def post_analysis(body: dict) -> dict:
         "bias_type":   bias.bias_tag,
     }
 
-    # ④ Agent A 호출
-    ai_analysis = await analyze_article(
+    # ③ 에이전트 A 호출 (편향 설명 + 배경 + 교차검증)
+    return await analyze_article(
         url=url,
         title=title,
         source=source,
         body=text_for_analysis,
         bias_meta=bias_meta,
     )
-
-    return {
-        "body_crawled": body_crawled,
-        "ai_analysis":  ai_analysis,
-        "updated_bias": {
-            "biasScore": bias.bias_score,
-            "biasTag":   bias.bias_tag,
-            "viewpoint": bias.viewpoint,
-        },
-    }
 
 
 # ── GET /api/related ──────────────────────────────────────────────────────────
@@ -119,7 +156,7 @@ async def get_related(
 @router.post("/recommend")
 async def post_recommend(body: dict) -> dict:
     """
-    Agent C — 'AI 정밀 분석' 버튼 클릭 시 호출.
+    Agent C — 'AI 정밀 분析' 버튼 클릭 시 호출.
     후보 기사 중 다른 시각 기사를 선별하고 추천 사유를 반환한다.
 
     Request body:
